@@ -1,8 +1,8 @@
 export enum Case {
-	CAMEL,
-	SNAKE,
-	KEBAB,
-	PASCAL,
+	CAMEL = 'CASE/Camel',
+	SNAKE = 'CASE/Snake',
+	KEBAB = 'CASE/Kebab',
+	PASCAL = 'CASE/Pascal',
 }
 
 export default class StringUtils {
@@ -30,16 +30,23 @@ export default class StringUtils {
 		return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 	}
 
-	private static splitFromCase(str : string, sourceCase: Case) : string[] {
-		switch(sourceCase) {
+	static guessCase(str: string): Case {
+		if (str.indexOf('-') > 0) return Case.KEBAB;
+		if (str.indexOf('_') > 0) return Case.SNAKE;
+		let lowerFirst = /^([0-9]*)[a-z]/;
+		return lowerFirst.test(str) ? Case.CAMEL : Case.PASCAL;
+	}
+
+	private static splitFromCase(str: string, sourceCase: Case): string[] {
+		switch (sourceCase) {
 			case Case.KEBAB:
-				return str.split("-");
+				return str.split('-');
 			case Case.SNAKE:
-				return str.split("_");
+				return str.split('_');
 			case Case.CAMEL:
-				return str.match(/(([A-Z]?)[a-z]+)/g) || [];
+				return str.match(/(([A-Z]?)[a-z]+|[0-9]+)/g) || [];
 			case Case.PASCAL:
-				return str.match(/([A-Z][a-z]+)/g) || [];
+				return str.match(/([A-Z][a-z]+|[0-9]+)/g) || [];
 		}
 	}
 
@@ -48,7 +55,7 @@ export default class StringUtils {
 			join: string = '';
 		switch (targetCase) {
 			case Case.CAMEL:
-				transform = (element, index) => (index ? element.toLowerCase() : this.capitalize(element));
+				transform = (element, index) => (index ? this.capitalize(element) : element.toLowerCase());
 				break;
 			case Case.SNAKE:
 				transform = element => element.toLowerCase();
@@ -59,13 +66,14 @@ export default class StringUtils {
 				join = '-';
 				break;
 			case Case.PASCAL:
-				transform = (element, index) => this.capitalize(element);
+				transform = element => this.capitalize(element);
 				break;
 		}
 		return transform ? elements.map(transform).join(join) : elements.join(join);
 	}
 
-	static changeCase(str : string, fromCase:Case, toCase:Case) : string {
+	static changeCase(str: string, toCase: Case, fromCase?: Case): string {
+		fromCase = fromCase || this.guessCase(str);
 		return this.joinToCase(this.splitFromCase(str, fromCase), toCase);
 	}
 

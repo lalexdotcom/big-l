@@ -1,19 +1,22 @@
 {
-  "name": "big-l",
-  "version": "0.0.2",
-  "description": "Everyday utilities",
+	"name": "big-l",
+	"version": "0.0.2",
+	"description": "Everyday utilities",
   "main": "./lib/index.js",
-  "repository": "https://github.com/lalexdotcom/big-l.git",
-  "author": "LAlex (lalex@lalex.com)",
-  "license": "MIT",
-  "scripts": {
-    "test": "nodemon src/test.ts",
-    "build": "tsc -p ."
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.6",
-    "ts-node": "^9.0.0",
-    "tslint": "^6.1.3",
-    "typescript": "^4.1.2"
-  }
+  "types": "./lib/index.d.ts",
+	"repository": "https://github.com/lalexdotcom/big-l.git",
+	"author": "LAlex (lalex@lalex.com)",
+	"license": "MIT",
+	"files": [
+		"lib/**/*"
+	],
+	"scripts": {
+		"test": "nodemon src/test.ts",
+		"build": "tsc -p ."
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.6",
+		"ts-node": "^9.0.0",
+		"typescript": "^4.1.2"
+	}
 }
