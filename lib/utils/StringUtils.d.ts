@@ -11,6 +11,4 @@ export default class StringUtils {
     private static splitFromCase;
     private static joinToCase;
     static changeCase(str: string, fromCase: Case, toCase: Case): string;
-    static camelToSnake(str: string): string;
-    static snakeToCamel(str: string): string;
 }

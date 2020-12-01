@@ -2,8 +2,6 @@ export default class ObjectUtils {
     static uid(o: any): string | null;
     static clearUid(o: any): void;
     static mapKeys(o: any, fct: (key: string) => string, deep?: boolean): any;
-    static camelToSnake(o: any, recursive?: boolean): any;
-    static snakeToCamel(o: any, recursive?: boolean): any;
     static map<T>(o: T, fct: (value: any, key?: string) => any): any;
     static toRegistry<T = any>(a: T[], key: keyof T | ((o: T) => string)): {
         [key: string]: T;
