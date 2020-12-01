@@ -10,7 +10,7 @@ export namespace LS {
 		return str
 			.split(separator)
 			.map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
-			.join(separator)
+			.join(separator);
 	}
 
 	export function toFilename(str: string, ...following: string[]): string {
@@ -22,59 +22,59 @@ export namespace LS {
 				.replace(/[\u0300-\u036f]/g, "")
 				.replace(/([^\w^ ]*)/g, "")
 				.replace(/([ ]+)/g, "-")
-		)
-		return strings.join("-")
+		);
+		return strings.join("-");
 	}
 
 	export function normalize(str: string): string {
-		return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+		return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 	}
 
 	export function guessCase(str: string): Case {
-		if (str.indexOf("-") > 0) return Case.KEBAB
-		if (str.indexOf("_") > 0) return Case.SNAKE
-		let lowerFirst = /^([0-9]*)[a-z]/
-		return lowerFirst.test(str) ? Case.CAMEL : Case.PASCAL
+		if (str.indexOf("-") > 0) return Case.KEBAB;
+		if (str.indexOf("_") > 0) return Case.SNAKE;
+		let lowerFirst = /^([0-9]*)[a-z]/;
+		return lowerFirst.test(str) ? Case.CAMEL : Case.PASCAL;
 	}
 
 	export function splitFromCase(str: string, sourceCase: Case): string[] {
 		switch (sourceCase) {
 			case Case.KEBAB:
-				return str.split("-")
+				return str.split("-");
 			case Case.SNAKE:
-				return str.split("_")
+				return str.split("_");
 			case Case.CAMEL:
-				return str.match(/(([A-Z]?)[a-z]+|[0-9]+)/g) || []
+				return str.match(/(([A-Z]?)[a-z]+|[0-9]+)/g) || [];
 			case Case.PASCAL:
-				return str.match(/([A-Z][a-z]+|[0-9]+)/g) || []
+				return str.match(/([A-Z][a-z]+|[0-9]+)/g) || [];
 		}
 	}
 
 	export function joinToCase(elements: string[], targetCase: Case): string {
 		let transform: ((element: string, index: number) => string) | undefined,
-			join: string = ""
+			join: string = "";
 		switch (targetCase) {
 			case Case.CAMEL:
-				transform = (element, index) => (index ? capitalize(element) : element.toLowerCase())
-				break
+				transform = (element, index) => (index ? capitalize(element) : element.toLowerCase());
+				break;
 			case Case.SNAKE:
-				transform = element => element.toLowerCase()
-				join = "_"
-				break
+				transform = element => element.toLowerCase();
+				join = "_";
+				break;
 			case Case.KEBAB:
-				transform = element => element.toLowerCase()
-				join = "-"
-				break
+				transform = element => element.toLowerCase();
+				join = "-";
+				break;
 			case Case.PASCAL:
-				transform = element => capitalize(element)
-				break
+				transform = element => capitalize(element);
+				break;
 		}
-		return transform ? elements.map(transform).join(join) : elements.join(join)
+		return transform ? elements.map(transform).join(join) : elements.join(join);
 	}
 
 	export function changeCase(str: string, toCase: Case, fromCase?: Case): string {
-		fromCase = fromCase || guessCase(str)
-		return joinToCase(splitFromCase(str, fromCase), toCase)
+		fromCase = fromCase || guessCase(str);
+		return joinToCase(splitFromCase(str, fromCase), toCase);
 	}
 
 	// static camelToSnake(str: string): string {
@@ -90,4 +90,3 @@ export namespace LS {
 	// 		.join('');
 	// }
 }
-
