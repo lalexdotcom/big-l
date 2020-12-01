@@ -1,9 +1,9 @@
 {
 	"name": "big-l",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Everyday utilities",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+	"main": "./lib/index.js",
+	"types": "./lib/index.d.ts",
 	"repository": "https://github.com/lalexdotcom/big-l.git",
 	"author": "LAlex (lalex@lalex.com)",
 	"license": "MIT",
