@@ -65,12 +65,12 @@ export namespace LG {
 		{
 			// VERBOSE
 			"background-color": "yellow",
-			"color": "black",
+			color: "black",
 		},
 		{
 			// DEBUG
 			"background-color": "yellow",
-			"color": "black",
+			color: "black",
 		},
 		{
 			// WHO_CARES
