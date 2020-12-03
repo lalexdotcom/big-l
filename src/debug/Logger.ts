@@ -85,7 +85,7 @@ export namespace LG {
 					style,
 					(reduced, key, val) => [...reduced, `${key}:${val}`],
 					[]
-				);
+				).join(";");
 				let method = console.log;
 				switch (level) {
 					case Level.EMERGENCY:
@@ -102,7 +102,11 @@ export namespace LG {
 						method = console.info;
 						break;
 				}
-				method.apply(console, [`%c${labels[level]}`, styleString, ...JSON.parse(JSON.stringify(args))]);
+				method.apply(console, [
+					`%c${labels[level]}`,
+					styleString,
+					...JSON.parse(JSON.stringify(args)),
+				]);
 			}
 		}
 	};
