@@ -1,85 +1,85 @@
 import { LO } from "../utils/ObjectUtils";
 
-export enum LoggerLevel {
-	EMERGENCY = 0,
-	ALERT = 1,
-	CRITICAL = 2,
-	ERROR = 3,
-	WARNING = 4,
-	NOTICE = 5,
-	INFO = 6,
-	VERBOSE = 7,
-	DEBUG = 8,
-	WHO_CARES = 9,
-}
+export namespace LG {
+	export enum Level {
+		EMERGENCY = 0,
+		ALERT = 1,
+		CRITICAL = 2,
+		ERROR = 3,
+		WARNING = 4,
+		NOTICE = 5,
+		INFO = 6,
+		VERBOSE = 7,
+		DEBUG = 8,
+		WHO_CARES = 9,
+	}
 
-const labels = [
-	"EMERGENCY",
-	"ALERT",
-	"CRITICAL",
-	"ERROR",
-	"WARNING",
-	"NOTICE",
-	"INFO",
-	"VERBOSE",
-	"DEBUG",
-	"WHO CARES?",
-];
-const baseStyle = {
-	color: "white",
-	"background-color": "#444",
-	padding: "2px 4px",
-	"border-radius": "2px",
-};
+	export let enabled: boolean = true;
+	export let level: Level = Level.WHO_CARES;
 
-const styles = [
-	{
-		// EMERGENCY
-		"background-color": "red",
-	},
-	{
-		// ALERT
-		"background-color": "red",
-	},
-	{
-		// CRITICAL
-		"background-color": "red",
-	},
-	{
-		// ERROR
-		"background-color": "red",
-	},
-	{
-		// WARNING
-		"background-color": "orange",
-	},
-	{
-		// NOTICE
-		"background-color": "blue",
-	},
-	null, // INFO
-	{
-		// VERBOSE
-		"background-color": "yellow",
-	},
-	{
-		// DEBUG
-		"background-color": "yellow",
-	},
-	{
-		// WHO_CARES
-		"background-color": "lightgray",
-		color: "black",
-	},
-];
+	const labels = [
+		"EMERGENCY",
+		"ALERT",
+		"CRITICAL",
+		"ERROR",
+		"WARNING",
+		"NOTICE",
+		"INFO",
+		"VERBOSE",
+		"DEBUG",
+		"WHO CARES?",
+	];
+	const baseStyle = {
+		color: "white",
+		"background-color": "#444",
+		padding: "2px 4px",
+		"border-radius": "2px",
+	};
 
-export default class Logger {
-	public static enabled: boolean = true;
-	public static level: LoggerLevel = LoggerLevel.WHO_CARES;
+	const styles = [
+		{
+			// EMERGENCY
+			"background-color": "red",
+		},
+		{
+			// ALERT
+			"background-color": "red",
+		},
+		{
+			// CRITICAL
+			"background-color": "red",
+		},
+		{
+			// ERROR
+			"background-color": "red",
+		},
+		{
+			// WARNING
+			"background-color": "orange",
+		},
+		{
+			// NOTICE
+			"background-color": "blue",
+		},
+		null, // INFO
+		{
+			// VERBOSE
+			"background-color": "yellow",
+		},
+		{
+			// DEBUG
+			"background-color": "yellow",
+		},
+		{
+			// WHO_CARES
+			"background-color": "lightgray",
+			color: "black",
+		},
+	];
 
-	private static log(level: LoggerLevel, args: any[]) {
-		if (this.enabled) {
-			if (level <= this.level) {
+	const log = (level: Level, args: any[]): void => {
+		if (enabled) {
+			if (level <= level) {
 				const style = { ...baseStyle, ...styles[level] };
 				const styleString = LO.reduce<string[]>(
 					style,
@@ -88,33 +88,33 @@ export default class Logger {
 				);
 				let method = console.log;
 				switch (level) {
-					case LoggerLevel.EMERGENCY:
-					case LoggerLevel.ALERT:
-					case LoggerLevel.CRITICAL:
-					case LoggerLevel.ERROR:
+					case Level.EMERGENCY:
+					case Level.ALERT:
+					case Level.CRITICAL:
+					case Level.ERROR:
 						method = console.error;
 						break;
-					case LoggerLevel.WARNING:
-					case LoggerLevel.NOTICE:
+					case Level.WARNING:
+					case Level.NOTICE:
 						method = console.warn;
 						break;
-					case LoggerLevel.INFO:
+					case Level.INFO:
 						method = console.info;
 						break;
 				}
 				method.apply(console, [`%c${labels[level]}`, styleString, ...JSON.parse(JSON.stringify(args))]);
 			}
 		}
-	}
+	};
 
-	static emerg = (...args: any[]) => Logger.log(LoggerLevel.EMERGENCY, args);
-	static alert = (...args: any[]) => Logger.log(LoggerLevel.ALERT, args);
-	static crit = (...args: any[]) => Logger.log(LoggerLevel.CRITICAL, args);
-	static error = (...args: any[]) => Logger.log(LoggerLevel.ERROR, args);
-	static warn = (...args: any[]) => Logger.log(LoggerLevel.WARNING, args);
-	static notice = (...args: any[]) => Logger.log(LoggerLevel.NOTICE, args);
-	static info = (...args: any[]) => Logger.log(LoggerLevel.INFO, args);
-	static verb = (...args: any[]) => Logger.log(LoggerLevel.VERBOSE, args);
-	static debug = (...args: any[]) => Logger.log(LoggerLevel.DEBUG, args);
-	static wth = (...args: any[]) => Logger.log(LoggerLevel.WHO_CARES, args);
+	export const emerg = (...args: any[]) => log(Level.EMERGENCY, args);
+	export const alert = (...args: any[]) => log(Level.ALERT, args);
+	export const crit = (...args: any[]) => log(Level.CRITICAL, args);
+	export const error = (...args: any[]) => log(Level.ERROR, args);
+	export const warn = (...args: any[]) => log(Level.WARNING, args);
+	export const notice = (...args: any[]) => log(Level.NOTICE, args);
+	export const info = (...args: any[]) => log(Level.INFO, args);
+	export const verb = (...args: any[]) => log(Level.VERBOSE, args);
+	export const debug = (...args: any[]) => log(Level.DEBUG, args);
+	export const wth = (...args: any[]) => log(Level.WHO_CARES, args);
 }

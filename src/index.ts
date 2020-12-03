@@ -1,4 +1,4 @@
-import Logger from "./debug/Logger";
+import { LG as Logger } from "./debug/Logger";
 import { LM as MathUtils } from "./utils/MathUtils";
 import { LO as ObjectUtils } from "./utils/ObjectUtils";
 import { LS as StringUtils } from "./utils/StringUtils";
