@@ -107,14 +107,14 @@ export default class Logger {
 		}
 	}
 
-	static emergency = (...args: any[]) => Logger.log(LoggerLevel.EMERGENCY, args);
+	static emerg = (...args: any[]) => Logger.log(LoggerLevel.EMERGENCY, args);
 	static alert = (...args: any[]) => Logger.log(LoggerLevel.ALERT, args);
-	static critical = (...args: any[]) => Logger.log(LoggerLevel.CRITICAL, args);
+	static crit = (...args: any[]) => Logger.log(LoggerLevel.CRITICAL, args);
 	static error = (...args: any[]) => Logger.log(LoggerLevel.ERROR, args);
-	static warning = (...args: any[]) => Logger.log(LoggerLevel.WARNING, args);
+	static warn = (...args: any[]) => Logger.log(LoggerLevel.WARNING, args);
 	static notice = (...args: any[]) => Logger.log(LoggerLevel.NOTICE, args);
 	static info = (...args: any[]) => Logger.log(LoggerLevel.INFO, args);
-	static verbose = (...args: any[]) => Logger.log(LoggerLevel.VERBOSE, args);
+	static verb = (...args: any[]) => Logger.log(LoggerLevel.VERBOSE, args);
 	static debug = (...args: any[]) => Logger.log(LoggerLevel.DEBUG, args);
-	static whoCares = (...args: any[]) => Logger.log(LoggerLevel.WHO_CARES, args);
+	static wth = (...args: any[]) => Logger.log(LoggerLevel.WHO_CARES, args);
 }
