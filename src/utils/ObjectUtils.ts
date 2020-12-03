@@ -21,6 +21,14 @@ export namespace LO {
 		if (o[UID_KEY]) delete o[UID_KEY];
 	}
 
+	export function reduce<T, O = any>(o: O, fct: (reduced: T, key: string, value: any, obj: O) => T, init: T): T {
+		let reduced = init;
+		for (let key in o) {
+			reduced = fct(reduced, key, o[key], o);
+		}
+		return reduced;
+	}
+
 	export function mapKeys(o: any, fct: (key: string) => string, recursive: boolean = false): any {
 		if (typeof o != "object") return o;
 		let r: any = {};
