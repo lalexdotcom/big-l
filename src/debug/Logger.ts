@@ -1,7 +1,9 @@
-import { LO } from "../utils/ObjectUtils";
+import { ObjectUtils } from "../utils/ObjectUtils";
+import StackTrace from "stacktrace-js";
+import { format } from "date-fns";
 
-export namespace LG {
-	export enum Level {
+export namespace Logger {
+	enum LogLevel {
 		EMERGENCY = 0,
 		ALERT = 1,
 		CRITICAL = 2,
@@ -14,8 +16,179 @@ export namespace LG {
 		WHO_CARES = 9,
 	}
 
-	export let enabled: boolean = true;
-	export let level: Level = Level.WHO_CARES;
+	type LogOptions = {
+		enabled: boolean;
+		stack: boolean;
+		time: boolean;
+		level: LogLevel;
+	};
+
+	export const Level = LogLevel;
+	export type Level = LogLevel;
+
+	export type Options = LogOptions;
+
+	const registry: { [ns: string]: LoggerInstance } = {};
+	let exclusiveLogger: LoggerInstance | undefined;
+
+	const defaultOptions: LogOptions = {
+		enabled: true,
+		stack: false,
+		time: false,
+		level: LogLevel.WHO_CARES,
+	};
+
+	const defaultInstanceOptions = { ...defaultOptions };
+
+	export const options = defaultInstanceOptions;
+
+	class LoggerInstance {
+		private namespace: string;
+		private options: Logger.Options;
+
+		private onces: { [key: string]: boolean } = {};
+
+		constructor(name_space: string, options: Logger.Options) {
+			this.namespace = name_space;
+			this.options = options;
+		}
+
+		get enabled(): boolean {
+			return this.options.enabled;
+		}
+
+		set enabled(b: boolean) {
+			this.options.enabled = b;
+		}
+
+		get stack(): boolean {
+			return this.options.stack;
+		}
+
+		set stack(b: boolean) {
+			this.options.stack = b;
+		}
+
+		get time(): boolean {
+			return this.options.time;
+		}
+
+		set time(b: boolean) {
+			this.options.time = b;
+		}
+
+		get level(): Logger.Level {
+			return this.options.level;
+		}
+
+		set level(level: Logger.Level) {
+			this.options.level = level;
+		}
+
+		set exclusive(b: boolean) {
+			exclusive(b ? this.namespace : undefined);
+		}
+
+		get exclusive(): boolean {
+			return exclusiveLogger === this;
+		}
+
+		ns = ns;
+
+		private log(logLevel: Logger.Level, args: any[]): void {
+			const maxLevel = Math.min(defaultInstanceOptions.level, this.options.level);
+			if (exclusiveLogger && exclusiveLogger !== this) return;
+			if (defaultInstanceOptions.enabled && this.options.enabled && logLevel <= maxLevel) {
+				const style = { ...baseStyle, ...styles[logLevel] };
+				const styleString = ObjectUtils.reduce<string[]>(
+					style,
+					(reduced, key, val) => [...reduced, `${key}:${val}`],
+					[]
+				).join(";");
+				let method = console.log;
+				switch (logLevel) {
+					case LogLevel.EMERGENCY:
+					case LogLevel.ALERT:
+					case LogLevel.CRITICAL:
+					case LogLevel.ERROR:
+						method = console.error;
+						break;
+					case LogLevel.WARNING:
+						method = console.warn;
+						break;
+					case LogLevel.NOTICE:
+					case LogLevel.INFO:
+						method = console.info;
+						break;
+					case LogLevel.DEBUG:
+					case LogLevel.VERBOSE:
+					case LogLevel.WHO_CARES:
+						method = console.debug;
+						break;
+				}
+				// const stack = StackTrace.getSync();
+				// let label = labels[logLevel];
+				const prefix: string[] = [
+					`%c${labels[logLevel]}${this.namespace != DEFAULT_NAMESPACE ? ` "${this.namespace}"` : ""}`,
+					styleString,
+					// stack.map(sf => sf.functionName || "").pop() || "",
+				];
+
+				if (this.options.time) {
+					prefix.push(`[${format(new Date(), "yyyy-MM-dd kk:mm:ss.SSS")}]`);
+				}
+
+				if (this.options.stack) {
+					const st = StackTrace.getSync();
+					const fName = st[2]?.functionName;
+					if (fName) prefix.push(`< ${fName} >`);
+				}
+
+				// console.log(st);
+
+				// StackTrace.get().then(st => console.warn(st));
+
+				method.apply(console, [...prefix, ...args]);
+				// method.apply(console, [...prefix, ...args]);
+			}
+		}
+
+		once(id: string, ...args: any[]) {
+			if (!this.onces[id]) {
+				this.onces[id] = true;
+				this.log(LogLevel.WHO_CARES, args);
+			}
+		}
+
+		emerg = (...args: any[]) => this.log(LogLevel.EMERGENCY, args);
+		alert = (...args: any[]) => this.log(LogLevel.ALERT, args);
+		crit = (...args: any[]) => this.log(LogLevel.CRITICAL, args);
+		error = (...args: any[]) => this.log(LogLevel.ERROR, args);
+		warn = (...args: any[]) => this.log(LogLevel.WARNING, args);
+		notice = (...args: any[]) => this.log(LogLevel.NOTICE, args);
+		info = (...args: any[]) => this.log(LogLevel.INFO, args);
+		verb = (...args: any[]) => this.log(LogLevel.VERBOSE, args);
+		debug = (...args: any[]) => this.log(LogLevel.DEBUG, args);
+		wth = (...args: any[]) => this.log(LogLevel.WHO_CARES, args);
+	}
+
+	export const ns = (ns: string, options: Partial<Logger.Options> = {}): LoggerInstance => {
+		if (!registry[ns])
+			registry[ns] = new LoggerInstance(
+				ns,
+				ns == DEFAULT_NAMESPACE ? defaultInstanceOptions : { ...defaultInstanceOptions, ...options }
+			);
+		return registry[ns];
+	};
+
+	export const exclusive = (name_space?: string) => {
+		warn(`${name_space} is exclusive`);
+		exclusiveLogger = name_space ? ns(name_space) : undefined;
+	};
+
+	const DEFAULT_NAMESPACE = "__default";
+
+	const defaultInstance = ns(DEFAULT_NAMESPACE);
 
 	const labels = [
 		"EMERGENCY",
@@ -64,8 +237,7 @@ export namespace LG {
 		null, // INFO
 		{
 			// VERBOSE
-			"background-color": "yellow",
-			color: "black",
+			"background-color": "green",
 		},
 		{
 			// DEBUG
@@ -79,44 +251,16 @@ export namespace LG {
 		},
 	];
 
-	const log = (level: Level, args: any[]): void => {
-		if (enabled) {
-			if (level <= level) {
-				const style = { ...baseStyle, ...styles[level] };
-				const styleString = LO.reduce<string[]>(
-					style,
-					(reduced, key, val) => [...reduced, `${key}:${val}`],
-					[]
-				).join(";");
-				let method = console.log;
-				switch (level) {
-					case Level.EMERGENCY:
-					case Level.ALERT:
-					case Level.CRITICAL:
-					case Level.ERROR:
-						method = console.error;
-						break;
-					case Level.WARNING:
-					case Level.NOTICE:
-						method = console.warn;
-						break;
-					case Level.INFO:
-						method = console.info;
-						break;
-				}
-				method.apply(console, [`%c${labels[level]}`, styleString, ...JSON.parse(JSON.stringify(args))]);
-			}
-		}
-	};
-
-	export const emerg = (...args: any[]) => log(Level.EMERGENCY, args);
-	export const alert = (...args: any[]) => log(Level.ALERT, args);
-	export const crit = (...args: any[]) => log(Level.CRITICAL, args);
-	export const error = (...args: any[]) => log(Level.ERROR, args);
-	export const warn = (...args: any[]) => log(Level.WARNING, args);
-	export const notice = (...args: any[]) => log(Level.NOTICE, args);
-	export const info = (...args: any[]) => log(Level.INFO, args);
-	export const verb = (...args: any[]) => log(Level.VERBOSE, args);
-	export const debug = (...args: any[]) => log(Level.DEBUG, args);
-	export const wth = (...args: any[]) => log(Level.WHO_CARES, args);
+	export const emerg = (...args: any[]) =>
+		defaultInstance.emerg.apply(defaultInstance, [LogLevel.EMERGENCY, ...args]);
+	export const alert = (...args: any[]) => defaultInstance.alert(...args);
+	export const crit = (...args: any[]) => defaultInstance.crit(...args);
+	export const error = (...args: any[]) => defaultInstance.error(...args);
+	export const warn = (...args: any[]) => defaultInstance.warn(...args);
+	export const notice = (...args: any[]) => defaultInstance.notice(...args);
+	export const info = (...args: any[]) => defaultInstance.info(...args);
+	export const verb = (...args: any[]) => defaultInstance.verb(...args);
+	export const debug = (...args: any[]) => defaultInstance.debug(...args);
+	export const wth = (...args: any[]) => defaultInstance.wth(...args);
+	export const once = (id: string, ...args: any[]) => defaultInstance.once(id, ...args);
 }

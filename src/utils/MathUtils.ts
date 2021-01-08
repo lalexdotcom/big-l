@@ -1,5 +1,17 @@
-export namespace LM {
+export namespace MathUtils {
 	export const GOLDEN_RATIO = 0.618033988749895;
+
+	export function finite<T>(num: number | null | undefined, or: T): number | T {
+		if (
+			num === undefined ||
+			num === null ||
+			!isNaN(num) ||
+			num == Number.POSITIVE_INFINITY ||
+			num == Number.NEGATIVE_INFINITY
+		)
+			return or;
+		return num;
+	}
 
 	export function round(price: number, digits: number = 0): number {
 		if (!digits) return Math.round(price);
@@ -17,7 +29,7 @@ export namespace LM {
 	}
 
 	export function applyMargin(price: number, percent: number, decimals: number = 0): number {
-		let newPrice = price / (1 - percent);
+		const newPrice = price / (1 - percent);
 		return round(newPrice, decimals);
 	}
 

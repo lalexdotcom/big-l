@@ -1,4 +1,4 @@
-export namespace LS {
+export namespace StringUtils {
 	export enum Case {
 		CAMEL = "CASE/Camel",
 		SNAKE = "CASE/Snake",
@@ -14,7 +14,7 @@ export namespace LS {
 	}
 
 	export function toFilename(str: string, ...following: string[]): string {
-		let strings = [str, ...following].map(s =>
+		let strings = [str, ...following].filter(s => s && s.length).map(s =>
 			s
 				.trim()
 				.toLowerCase()

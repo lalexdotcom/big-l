@@ -11,7 +11,8 @@
 		"lib/**/*"
 	],
 	"scripts": {
-		"build": "rm -rf lib && tsc -p .",
+		"build": "rm -rf lib && tsc --project .",
+		"watch": "rm -rf lib && tsc --watch --project .",
 		"test": "nodemon src/test.ts",
 		"format": "prettier --write src/**/*.ts",
 		"lint": "eslint",
@@ -23,6 +24,7 @@
 		"patch": "npm version patch"
 	},
 	"devDependencies": {
+		"@types/stacktrace-js": "^2.0.3",
 		"@types/zxcvbn": "^4.4.0",
 		"@typescript-eslint/eslint-plugin": "^4.9.0",
 		"@typescript-eslint/parser": "^4.9.0",
@@ -33,5 +35,9 @@
 		"ts-node": "^9.0.0",
 		"typescript": "^4.1.2"
 	},
-	"peerDependencies": {}
+	"peerDependencies": {},
+	"dependencies": {
+		"date-fns": "^2.16.1",
+		"stacktrace-js": "^2.0.2"
+	}
 }
