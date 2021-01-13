@@ -14,15 +14,17 @@ export namespace StringUtils {
 	}
 
 	export function toFilename(str: string, ...following: string[]): string {
-		let strings = [str, ...following].filter(s => s && s.length).map(s =>
-			s
-				.trim()
-				.toLowerCase()
-				.normalize("NFD")
-				.replace(/[\u0300-\u036f]/g, "")
-				.replace(/([^\w^ ]*)/g, "")
-				.replace(/([ ]+)/g, "-")
-		);
+		let strings = [str, ...following]
+			.filter(s => s && s.length)
+			.map(s =>
+				s
+					.trim()
+					.toLowerCase()
+					.normalize("NFD")
+					.replace(/[\u0300-\u036f]/g, "")
+					.replace(/([^\w^ ]*)/g, "")
+					.replace(/([ ]+)/g, "-")
+			);
 		return strings.join("-");
 	}
 
