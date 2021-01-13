@@ -47,7 +47,7 @@ export namespace ObjectUtils {
 		}
 		return r;
 	}
-
+	
 	export function toRegistry<T = any>(a: T[], key: keyof T | ((o: T) => string)): { [key: string]: T } {
 		return a.reduce(
 			(red, v) => ({
