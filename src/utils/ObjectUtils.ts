@@ -129,8 +129,8 @@ export namespace ObjectUtils {
 		return dif;
 	}
 
-	export function changed<T = any>(obj: T, compare: T): Partial<{ [key in keyof T]: boolean }> {
-		const changed: Partial<{ [key in keyof T]: boolean }> = {};
+	export function changed<T = any>(obj: T, compare: T): Partial<{ [key in keyof T]: true }> {
+		const changed: Partial<{ [key in keyof T]: true }> = {};
 		for (const k in obj) {
 			if (obj[k] !== compare[k]) changed[k] = true;
 		}
