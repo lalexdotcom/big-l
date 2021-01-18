@@ -129,6 +129,14 @@ export namespace ObjectUtils {
 		return dif;
 	}
 
+	export function changed<T = any>(obj: T, compare: T): Partial<{ [key in keyof T]: boolean }> {
+		const changed: Partial<{ [key in keyof T]: boolean }> = {};
+		for (const k in obj) {
+			if (obj[k] !== compare[k]) changed[k] = true;
+		}
+		return changed;
+	}
+
 	export function registry<T = any>(arr: T[], field: keyof T): { [key: string]: T } {
 		const reg: { [key: string]: T } = {};
 		arr.forEach(o => {

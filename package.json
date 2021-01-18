@@ -21,7 +21,8 @@
 		"preversion": "npm run lint",
 		"version": "npm run format && git add -A src",
 		"postversion": "git push && git push --tags",
-		"patch": "npm version patch"
+		"patch": "npm version patch",
+		"np": "npm run np"
 	},
 	"devDependencies": {
 		"@types/stacktrace-js": "^2.0.3",
@@ -31,6 +32,7 @@
 		"eslint": "^7.14.0",
 		"eslint-config-prettier": "^6.15.0",
 		"nodemon": "^2.0.6",
+		"np": "^7.2.0",
 		"prettier": "^2.2.1",
 		"ts-node": "^9.0.0",
 		"typescript": "^4.1.2"
