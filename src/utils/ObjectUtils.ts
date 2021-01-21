@@ -134,6 +134,9 @@ export namespace ObjectUtils {
 		for (const k in obj) {
 			if (obj[k] !== compare[k]) changed[k] = true;
 		}
+		for (const k in compare) {
+			if (!changed[k] && compare[k] !== obj[k]) changed[k] = true;
+		}
 		return changed;
 	}
 
