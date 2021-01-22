@@ -40,7 +40,7 @@ export namespace ObjectUtils {
 		return r;
 	}
 
-	export function map<T>(o: T, fct: (value: any, key?: string) => any) {
+	export function map<T, K>(o: T, fct: (value: any, key?: string) => K): { [key in keyof T]: K } {
 		const r: any = {};
 		for (const k in o) {
 			r[k] = fct(o[k], k);
