@@ -6,11 +6,14 @@ export namespace Timer {
 		const start = new Date().valueOf();
 		const result = cb(...args);
 		return { result, time: new Date().valueOf() - start };
-    }
-    
-    export async function timeAsync<PT, FT extends (...args:any[]) => Promise<PT>>(cb : FT, ...args:Parameters<FT>) : Promise<{ result: PT; time: number }> {
+	}
+
+	export async function timeAsync<PT, FT extends (...args: any[]) => Promise<PT>>(
+		cb: FT,
+		...args: Parameters<FT>
+	): Promise<{ result: PT; time: number }> {
 		const start = new Date().valueOf();
 		const result = await cb(...args);
 		return { result, time: new Date().valueOf() - start };
-    }
+	}
 }
