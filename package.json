@@ -1,6 +1,6 @@
 {
 	"name": "big-l",
-	"version": "0.0.20",
+	"version": "0.0.21",
 	"description": "Everyday utilities",
 	"main": "./lib/index.js",
 	"types": "./lib/index.d.ts",
@@ -22,7 +22,7 @@
 		"version": "npm run format && git add -A src",
 		"postversion": "git push && git push --tags",
 		"patch": "npm version patch",
-		"pub" : "npm publish",
+		"pub": "npm publish",
 		"np": "npm run np"
 	},
 	"devDependencies": {
