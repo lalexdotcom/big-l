@@ -22,6 +22,7 @@
 		"version": "npm run format && git add -A src",
 		"postversion": "git push && git push --tags",
 		"patch": "npm version patch",
+		"pub" : "npm publish",
 		"np": "npm run np"
 	},
 	"devDependencies": {
