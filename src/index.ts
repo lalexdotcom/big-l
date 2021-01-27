@@ -1,13 +1,9 @@
-import { Logger } from "./debug/Logger";
-import { MathUtils } from "./utils/MathUtils";
-import { ObjectUtils } from "./utils/ObjectUtils";
-import { StringUtils } from "./utils/StringUtils";
-import { ArrayUtils } from "./utils/ArrayUtils";
-import { Timer } from "./debug/Timer";
 
-export const LS = StringUtils;
-export const LM = MathUtils;
-export const LO = ObjectUtils;
-export const LA = ArrayUtils;
-export const LG = Logger;
-export const LT = Timer;
+export { Logger as LG } from "./debug/Logger";
+export { Timer as LT } from "./debug/Timer";
+export { ArrayUtils as LA } from "./utils/ArrayUtils";
+export { DateUtils as LD } from "./utils/DateUtils";
+export { MathUtils as LM } from "./utils/MathUtils";
+export { ObjectUtils as LO } from "./utils/ObjectUtils";
+export { StringUtils as LS } from "./utils/StringUtils";
+

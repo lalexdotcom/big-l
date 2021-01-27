@@ -13,14 +13,14 @@ export namespace MathUtils {
 		return num;
 	}
 
-	export function round(price: number, digits: number = 0): number {
+	export function round(price: number, digits = 0): number {
 		if (!digits) return Math.round(price);
-		let pow = Math.pow(10, digits);
+		const pow = Math.pow(10, digits);
 		return Math.round(price * pow) / pow;
 	}
 
-	export function addPercent(price: number, percent: number, decimals: number = 0): number {
-		let newPrice = price * (1 + percent);
+	export function addPercent(price: number, percent: number, decimals = 0): number {
+		const newPrice = price * (1 + percent);
 		return round(newPrice, decimals);
 	}
 
@@ -28,13 +28,13 @@ export namespace MathUtils {
 		return price / (1 + tax);
 	}
 
-	export function applyMargin(price: number, percent: number, decimals: number = 0): number {
+	export function applyMargin(price: number, percent: number, decimals = 0): number {
 		const newPrice = price / (1 - percent);
 		return round(newPrice, decimals);
 	}
 
-	export function getMargin(buyPrice: number, sellPrice: number, tax: number = 0): number {
-		let sell = tax ? subtrPercent(sellPrice, tax) : sellPrice;
+	export function getMargin(buyPrice: number, sellPrice: number, tax = 0): number {
+		const sell = tax ? subtrPercent(sellPrice, tax) : sellPrice;
 		return 1 - buyPrice / sell;
 	}
 
