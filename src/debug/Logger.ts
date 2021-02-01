@@ -23,13 +23,40 @@ export namespace Logger {
 		level: LogLevel;
 	};
 
+	interface ILogger {
+		emerg(...args: any[]): void;
+		alert(...args: any[]): void;
+		crit(...args: any[]): void;
+		error(...args: any[]): void;
+		warn(...args: any[]): void;
+		notice(...args: any[]): void;
+		info(...args: any[]): void;
+		verb(...args: any[]): void;
+		debug(...args: any[]): void;
+		wth(...args: any[]): void;
+	}
+
+	interface Logger extends ILogger {
+		time: boolean;
+		stack: boolean;
+		enabled: boolean;
+		level: LogLevel;
+
+		once(key: string, ...args: any[]): void;
+		limit(key: string, limit: number): LimitedLogger;
+	}
+
+	interface LimitedLogger extends ILogger {
+		reset(): void;
+	}
+
 	export const Level = LogLevel;
 	export type Level = LogLevel;
 
 	export type Options = LogOptions;
 
 	const registry: { [ns: string]: LoggerInstance } = {};
-	let exclusiveLogger: LoggerInstance | undefined;
+	let exclusiveLogger: Logger | undefined;
 
 	const defaultOptions: LogOptions = {
 		enabled: true,
@@ -42,11 +69,48 @@ export namespace Logger {
 
 	export const options = defaultInstanceOptions;
 
-	class LoggerInstance {
+	class LoggerLimit implements LimitedLogger {
+		private instance: LoggerInstance;
+		private limit: number;
+		private count = 0;
+
+		constructor(instance: LoggerInstance, limit: number) {
+			this.instance = instance;
+			this.limit = limit;
+		}
+
+		private limitedCall(cb: (...args: any[]) => void, ...args: any[]) {
+			if (this.count < this.limit) {
+				this.count++;
+				cb(...args);
+			} else if (this.count == this.limit) {
+				this.count++;
+				cb("Limited to", this.limit);
+			}
+		}
+
+		reset() {
+			this.count = 0;
+		}
+
+		emerg = (...args: any[]) => this.limitedCall(this.instance.emerg, args);
+		alert = (...args: any[]) => this.limitedCall(this.instance.alert, args);
+		crit = (...args: any[]) => this.limitedCall(this.instance.crit, args);
+		error = (...args: any[]) => this.limitedCall(this.instance.error, args);
+		warn = (...args: any[]) => this.limitedCall(this.instance.warn, args);
+		notice = (...args: any[]) => this.limitedCall(this.instance.notice, args);
+		info = (...args: any[]) => this.limitedCall(this.instance.info, args);
+		verb = (...args: any[]) => this.limitedCall(this.instance.verb, args);
+		debug = (...args: any[]) => this.limitedCall(this.instance.debug, args);
+		wth = (...args: any[]) => this.limitedCall(this.instance.wth, args);
+	}
+
+	class LoggerInstance implements Logger {
 		private namespace: string;
 		private options: Logger.Options;
 
 		private onces: { [key: string]: boolean } = {};
+		private limits: { [key: string]: LoggerLimit } = {};
 
 		constructor(name_space: string, options: Logger.Options) {
 			this.namespace = name_space;
@@ -94,6 +158,14 @@ export namespace Logger {
 		}
 
 		ns = ns;
+
+		limit(key: string, count: number): LimitedLogger {
+			if (this.limits[key]) {
+				return this.limits[key];
+			} else {
+				return (this.limits[key] = new LoggerLimit(this, count));
+			}
+		}
 
 		private log(logLevel: Logger.Level, args: any[]): void {
 			const maxLevel = Math.min(defaultInstanceOptions.level, this.options.level);
@@ -172,7 +244,7 @@ export namespace Logger {
 		wth = (...args: any[]) => this.log(LogLevel.WHO_CARES, args);
 	}
 
-	export const ns = (ns: string, options: Partial<Logger.Options> = {}): LoggerInstance => {
+	export const ns = (ns: string, options: Partial<Logger.Options> = {}): Logger => {
 		if (!registry[ns])
 			registry[ns] = new LoggerInstance(
 				ns,
@@ -251,8 +323,7 @@ export namespace Logger {
 		},
 	];
 
-	export const emerg = (...args: any[]) =>
-		defaultInstance.emerg.apply(defaultInstance, [LogLevel.EMERGENCY, ...args]);
+	export const emerg = (...args: any[]) => defaultInstance.emerg(LogLevel.EMERGENCY, ...args);
 	export const alert = (...args: any[]) => defaultInstance.alert(...args);
 	export const crit = (...args: any[]) => defaultInstance.crit(...args);
 	export const error = (...args: any[]) => defaultInstance.error(...args);
@@ -262,5 +333,7 @@ export namespace Logger {
 	export const verb = (...args: any[]) => defaultInstance.verb(...args);
 	export const debug = (...args: any[]) => defaultInstance.debug(...args);
 	export const wth = (...args: any[]) => defaultInstance.wth(...args);
+
 	export const once = (id: string, ...args: any[]) => defaultInstance.once(id, ...args);
+	export const limit = (key: string, count: number) => defaultInstance.limit(key, count);
 }
