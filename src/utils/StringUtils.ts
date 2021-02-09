@@ -6,7 +6,7 @@ export namespace StringUtils {
 		PASCAL = "CASE/Pascal",
 	}
 
-	export function capitalize(str: string, separator: string = " "): string {
+	export function capitalize(str: string, separator = " "): string {
 		return str
 			.split(separator)
 			.map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
@@ -14,7 +14,7 @@ export namespace StringUtils {
 	}
 
 	export function toFilename(str: string, ...following: string[]): string {
-		let strings = [str, ...following]
+		const strings = [str, ...following]
 			.filter(s => s && s.length)
 			.map(s =>
 				s
@@ -35,7 +35,7 @@ export namespace StringUtils {
 	export function guessCase(str: string): Case {
 		if (str.indexOf("-") > 0) return Case.KEBAB;
 		if (str.indexOf("_") > 0) return Case.SNAKE;
-		let lowerFirst = /^([0-9]*)[a-z]/;
+		const lowerFirst = /^([0-9]*)[a-z]/;
 		return lowerFirst.test(str) ? Case.CAMEL : Case.PASCAL;
 	}
 

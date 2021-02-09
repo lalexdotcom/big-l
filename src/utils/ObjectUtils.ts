@@ -1,5 +1,39 @@
+import { format, parse, parseJSON } from "date-fns";
+import { StringUtils } from "./StringUtils";
+
 const UID_KEY = "__$$uid";
 let UID_INDEX = 0;
+
+export type JSONOptions = {
+	replacer?: ((this: any, key: string, value: any) => any) | (number | string)[] | null;
+	reviver?: (this: any, key: string, value: any) => any;
+	keyTransform?: (key: string) => string;
+	exclude?: string[];
+	dateFormat?: string;
+	dateKeys?: string[];
+	parseDate?: true;
+};
+
+function jsonReplacer(options: JSONOptions) {
+	return function (this: any, k: string, v: any) {
+		let value = v;
+		if (options.exclude && options.exclude.indexOf(k) >= 0) return undefined;
+		if (options.dateFormat && this[k] instanceof Date) value = format(this[k], options.dateFormat);
+		else if (typeof options.replacer === "function") value = options.replacer.call(this, k, v);
+		return value;
+	};
+}
+
+function jsonReviver(options: JSONOptions) {
+	return function (this: any, k: string, v: any) {
+		if (options.parseDate || (options.dateKeys && options.dateKeys.indexOf(k) >= 0)) {
+			const dt = options.dateFormat ? parse(v, options.dateFormat, new Date()) : parseJSON(v);
+			if (!isNaN(dt.getTime())) return dt;
+		}
+		if (options.reviver) return options.reviver.call(this, k, v);
+		return v;
+	};
+}
 
 export namespace ObjectUtils {
 	export function uid(o: any): string | null {
@@ -146,5 +180,24 @@ export namespace ObjectUtils {
 			reg[`${o[field]}`] = o;
 		});
 		return reg;
+	}
+
+	export function stringify(value: any, options?: JSONOptions, space?: string | number): string {
+		if (options?.keyTransform) {
+			value = ObjectUtils.mapKeys(value, options.keyTransform, true);
+		}
+		// if (options) {
+		// 	if (Array.isArray(options.replacer)) return JSON.stringify(value, options.replacer, space);
+		// 	if (options.replacer) return JSON.stringify(value, options.replacer, space);
+		// }
+		return JSON.stringify(value, options ? jsonReplacer(options) : undefined, space);
+	}
+
+	export function parse(text: string, options?: JSONOptions): any {
+		let obj: any;
+		if (options?.reviver) obj = JSON.parse(text, options.reviver);
+		else obj = JSON.parse(text, jsonReviver(options || {}));
+		if (options?.keyTransform) obj = ObjectUtils.mapKeys(obj, options.keyTransform, true);
+		return obj;
 	}
 }
