@@ -1,5 +1,6 @@
-import { format, parse, parseJSON } from "date-fns";
-import { StringUtils } from "./StringUtils";
+import { format, formatISO, isMatch, parse, parseJSON } from "date-fns";
+import { isValid } from "date-fns/esm";
+import { LD } from "..";
 
 const UID_KEY = "__$$uid";
 let UID_INDEX = 0;
@@ -11,24 +12,31 @@ export type JSONOptions = {
 	exclude?: string[];
 	dateFormat?: string;
 	dateKeys?: string[];
-	parseDate?: true;
+	handleDates?: true;
 };
 
 function jsonReplacer(options: JSONOptions) {
 	return function (this: any, k: string, v: any) {
 		let value = v;
 		if (options.exclude && options.exclude.indexOf(k) >= 0) return undefined;
-		if (options.dateFormat && this[k] instanceof Date) value = format(this[k], options.dateFormat);
-		else if (typeof options.replacer === "function") value = options.replacer.call(this, k, v);
+		if ((options.dateFormat || options.handleDates) && this[k] instanceof Date)
+			value = options.dateFormat ? format(this[k], options.dateFormat) : formatISO(this[k]);
+		if (typeof options.replacer === "function") value = options.replacer.call(this, k, value);
 		return value;
 	};
 }
 
 function jsonReviver(options: JSONOptions) {
 	return function (this: any, k: string, v: any) {
-		if (options.parseDate || (options.dateKeys && options.dateKeys.indexOf(k) >= 0)) {
-			const dt = options.dateFormat ? parse(v, options.dateFormat, new Date()) : parseJSON(v);
-			if (!isNaN(dt.getTime())) return dt;
+		if (options.handleDates || options.dateFormat || (options.dateKeys && options.dateKeys.indexOf(k) >= 0)) {
+			const dt = options.dateFormat
+				? isMatch(`${v}`, options.dateFormat)
+					? parse(v, options.dateFormat, new Date())
+					: null
+				: typeof v == "string"
+				? parseJSON(v)
+				: null;
+			if (isValid(dt)) return dt;
 		}
 		if (options.reviver) return options.reviver.call(this, k, v);
 		return v;
@@ -66,10 +74,12 @@ export namespace ObjectUtils {
 
 	export function mapKeys(o: any, fct: (key: string) => string, recursive = false): any {
 		if (typeof o != "object") return o;
+		if (Array.isArray(o)) return o.map(ae => mapKeys(ae, fct, recursive));
 		const r: any = {};
 		for (const k in o) {
 			const v = o[k];
-			r[fct(k)] = recursive && v.constructor == Object ? mapKeys(o[k], fct, true) : o[k];
+			r[fct(k)] =
+				recursive && (v.constructor == Object || v.constructor == Array) ? mapKeys(o[k], fct, true) : o[k];
 		}
 		return r;
 	}
@@ -182,21 +192,18 @@ export namespace ObjectUtils {
 		return reg;
 	}
 
-	export function stringify(value: any, options?: JSONOptions, space?: string | number): string {
+	export function stringify(value: any, options?: JSONOptions | null, space?: string | number): string {
 		if (options?.keyTransform) {
 			value = ObjectUtils.mapKeys(value, options.keyTransform, true);
 		}
-		// if (options) {
-		// 	if (Array.isArray(options.replacer)) return JSON.stringify(value, options.replacer, space);
-		// 	if (options.replacer) return JSON.stringify(value, options.replacer, space);
-		// }
 		return JSON.stringify(value, options ? jsonReplacer(options) : undefined, space);
 	}
 
-	export function parse(text: string, options?: JSONOptions): any {
+	export function parse(text: string | null, options?: JSONOptions | null): any | null {
+		if (!text) return null;
 		let obj: any;
 		if (options?.reviver) obj = JSON.parse(text, options.reviver);
-		else obj = JSON.parse(text, jsonReviver(options || {}));
+		else obj = JSON.parse(text, options ? jsonReviver(options) : undefined);
 		if (options?.keyTransform) obj = ObjectUtils.mapKeys(obj, options.keyTransform, true);
 		return obj;
 	}
