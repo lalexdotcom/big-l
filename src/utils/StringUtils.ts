@@ -41,14 +41,14 @@ export namespace StringUtils {
 
 	export function splitFromCase(str: string, sourceCase: Case): string[] {
 		switch (sourceCase) {
-		case Case.KEBAB:
-			return str.split("-");
-		case Case.SNAKE:
-			return str.split("_");
-		case Case.CAMEL:
-			return str.match(/(([A-Z]?)[a-z]+|[0-9]+)/g) || [];
-		case Case.PASCAL:
-			return str.match(/([A-Z][a-z]+|[0-9]+)/g) || [];
+			case Case.KEBAB:
+				return str.split("-");
+			case Case.SNAKE:
+				return str.split("_");
+			case Case.CAMEL:
+				return str.match(/(([A-Z]?)[a-z]+|[0-9]+)/g) || [];
+			case Case.PASCAL:
+				return str.match(/([A-Z][a-z]+|[0-9]+)/g) || [];
 		}
 	}
 
@@ -56,20 +56,20 @@ export namespace StringUtils {
 		let transform: ((element: string, index: number) => string) | undefined,
 			join = "";
 		switch (targetCase) {
-		case Case.CAMEL:
-			transform = (element, index) => (index ? capitalize(element) : element.toLowerCase());
-			break;
-		case Case.SNAKE:
-			transform = element => element.toLowerCase();
-			join = "_";
-			break;
-		case Case.KEBAB:
-			transform = element => element.toLowerCase();
-			join = "-";
-			break;
-		case Case.PASCAL:
-			transform = element => capitalize(element);
-			break;
+			case Case.CAMEL:
+				transform = (element, index) => (index ? capitalize(element) : element.toLowerCase());
+				break;
+			case Case.SNAKE:
+				transform = element => element.toLowerCase();
+				join = "_";
+				break;
+			case Case.KEBAB:
+				transform = element => element.toLowerCase();
+				join = "-";
+				break;
+			case Case.PASCAL:
+				transform = element => capitalize(element);
+				break;
 		}
 		return transform ? elements.map(transform).join(join) : elements.join(join);
 	}
