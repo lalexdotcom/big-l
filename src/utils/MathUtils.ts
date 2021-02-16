@@ -19,9 +19,9 @@ export namespace MathUtils {
 		return Math.round(price * pow) / pow;
 	}
 
-	export function addPercent(price: number, percent: number, decimals = 0): number {
+	export function addPercent(price: number, percent: number, decimals: number | null = null): number {
 		const newPrice = price * (1 + percent);
-		return round(newPrice, decimals);
+		return decimals === null ? newPrice : round(newPrice, decimals);
 	}
 
 	export function subtrPercent(price: number, tax: number): number {

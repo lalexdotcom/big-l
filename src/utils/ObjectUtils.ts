@@ -1,6 +1,4 @@
-import { format, formatISO, isMatch, parse, parseJSON } from "date-fns";
-import { isValid } from "date-fns/esm";
-import { LD } from "..";
+import { format, formatISO, isMatch, parse, parseJSON, isValid } from "date-fns";
 
 const UID_KEY = "__$$uid";
 let UID_INDEX = 0;
@@ -34,8 +32,8 @@ function jsonReviver(options: JSONOptions) {
 					? parse(v, options.dateFormat, new Date())
 					: null
 				: typeof v == "string"
-				? parseJSON(v)
-				: null;
+					? parseJSON(v)
+					: null;
 			if (isValid(dt)) return dt;
 		}
 		if (options.reviver) return options.reviver.call(this, k, v);
