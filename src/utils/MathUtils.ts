@@ -19,6 +19,11 @@ export namespace MathUtils {
 		return Math.round(price * pow) / pow;
 	}
 
+	export function reduce(price: number, precision: number) {
+		const mod = price % precision;
+		return price - mod + (mod < precision / 2 ? 0 : precision);
+	}
+
 	export function addPercent(price: number, percent: number, decimals: number | null = null): number {
 		const newPrice = price * (1 + percent);
 		return decimals === null ? newPrice : round(newPrice, decimals);
