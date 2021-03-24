@@ -24,4 +24,15 @@ export namespace ArrayUtils {
 		for (const n of arr) min = min < n ? min : n;
 		return min;
 	}
+
+	export function nonadj<T = any>(arr: T[], equals: (test: T, compare: T) => boolean = (t, c) => t == c): T[] {
+		let v: T | undefined = undefined;
+		const res: T[] = [];
+
+		for (const cur of arr) {
+			if (v === undefined || !equals(cur, v)) res.push(cur);
+			v = cur;
+		}
+		return res;
+	}
 }

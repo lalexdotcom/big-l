@@ -1,6 +1,17 @@
 import { ObjectUtils } from "../utils/ObjectUtils";
 import StackTrace from "stacktrace-js";
 import { format } from "date-fns";
+import { EnvUtils } from "../utils/EnvUtils";
+import { Chalk } from "chalk";
+
+const DEFAULT_NAMESPACE = "__default";
+
+const inBrowser = EnvUtils.isBrowser();
+const inNode = EnvUtils.isNode();
+
+const PAD = inNode;
+
+const chalk: Chalk = inNode ? require("chalk") : undefined;
 
 export namespace Logger {
 	enum LogLevel {
@@ -19,11 +30,117 @@ export namespace Logger {
 	type LogOptions = {
 		enabled: boolean;
 		stack: boolean;
+		date: boolean;
 		time: boolean;
 		level: LogLevel;
+		pad: boolean;
 	};
 
+	const defaultOptions: LogOptions = {
+		enabled: true,
+		stack: false,
+		date: false,
+		time: false,
+		level: LogLevel.WHO_CARES,
+		pad: true,
+	};
+
+	type LogLevelStyle = {
+		backgroundColor?: string;
+		color?: string;
+	};
+
+	const LEVEL_INFOS: { [key in LogLevel]: LogLevelStyle & { label: string; paddedLabel?: string } } = {
+		[LogLevel.EMERGENCY]: {
+			label: "EMERGENCY",
+			backgroundColor: "red",
+		},
+		[LogLevel.ALERT]: {
+			label: "ALERT",
+			backgroundColor: "red",
+		},
+		[LogLevel.CRITICAL]: {
+			label: "CRITICAL",
+			backgroundColor: "red",
+		},
+		[LogLevel.ERROR]: {
+			label: "ERROR",
+			backgroundColor: "red",
+		},
+		[LogLevel.WARNING]: {
+			label: "WARNING",
+			backgroundColor: "orange",
+		},
+		[LogLevel.NOTICE]: {
+			label: "NOTICE",
+			backgroundColor: "blue",
+		},
+		[LogLevel.INFO]: {
+			label: "INFO",
+		},
+		[LogLevel.VERBOSE]: {
+			label: "VERBOSE",
+			backgroundColor: "green",
+		},
+		[LogLevel.DEBUG]: {
+			label: "DEBUG",
+			backgroundColor: "yellow",
+			color: "black",
+		},
+		[LogLevel.WHO_CARES]: {
+			label: "WHO CARES?",
+			backgroundColor: "lightgray",
+			color: "black",
+		},
+	};
+
+	if (PAD) {
+		const padSize = Math.max(...Object.values(LEVEL_INFOS).map(info => info.label.length));
+		for (const lvl of Object.values(LEVEL_INFOS)) {
+			lvl.paddedLabel = lvl.label
+				.padEnd(lvl.label.length + (padSize - lvl.label.length) / 2, " ")
+				.padStart(padSize, " ");
+		}
+	}
+
+	const defaultLevelStyle = {
+		backgroundColor: "grey",
+		color: "white",
+	};
+
+	const fullLevelStyles = ObjectUtils.map(
+		LEVEL_INFOS,
+		(o: LogLevelStyle): LogLevelStyle => ({ ...defaultLevelStyle, ...o })
+	);
+
+	const browserStyle = {
+		padding: "2px 4px",
+		"border-radius": "2px",
+	};
+
+	/* eslint-disable no-inner-declarations */
+	function styleToCSS(level: LogLevel): string {
+		const fullStyle = fullLevelStyles[level];
+
+		const cssKeys: { [key in keyof Required<LogLevelStyle>]: string } = {
+			backgroundColor: "background-color",
+			color: "color",
+		};
+		const css: any = { ...browserStyle };
+		for (const k of Object.keys(cssKeys)) {
+			const sk = <keyof typeof fullStyle>k;
+			css[cssKeys[sk]] = fullStyle[sk];
+		}
+		return ObjectUtils.reduce<string[]>(css, (red, k, v) => [...red, `${k}: ${v}`], []).join("; ");
+	}
+	/* eslint-enable */
+
+	const browserLevelStyles: { [key in LogLevel]: string } | undefined = inBrowser
+		? ObjectUtils.map(LEVEL_INFOS, (_, lvl) => styleToCSS((lvl as unknown) as LogLevel))
+		: undefined;
+
 	interface ILogger {
+		/* eslint-disable @typescript-eslint/no-explicit-any */
 		emerg(...args: any[]): void;
 		alert(...args: any[]): void;
 		crit(...args: any[]): void;
@@ -34,15 +151,16 @@ export namespace Logger {
 		verb(...args: any[]): void;
 		debug(...args: any[]): void;
 		wth(...args: any[]): void;
+		/* eslint-enable */
 	}
 
-	interface Logger extends ILogger {
+	export interface Logger extends ILogger {
 		time: boolean;
 		stack: boolean;
 		enabled: boolean;
 		level: LogLevel;
 
-		once(key: string, ...args: any[]): void;
+		once(key: string, ...args: any[]): void; // eslint-disable-line @typescript-eslint/no-explicit-any
 		limit(key: string, limit: number): LimitedLogger;
 	}
 
@@ -57,13 +175,6 @@ export namespace Logger {
 
 	const registry: { [ns: string]: LoggerInstance } = {};
 	let exclusiveLogger: Logger | undefined;
-
-	const defaultOptions: LogOptions = {
-		enabled: true,
-		stack: false,
-		time: false,
-		level: LogLevel.WHO_CARES,
-	};
 
 	const defaultInstanceOptions = { ...defaultOptions };
 
@@ -93,16 +204,16 @@ export namespace Logger {
 			this.count = 0;
 		}
 
-		emerg = (...args: any[]) => this.limitedCall(this.instance.emerg, args);
-		alert = (...args: any[]) => this.limitedCall(this.instance.alert, args);
-		crit = (...args: any[]) => this.limitedCall(this.instance.crit, args);
-		error = (...args: any[]) => this.limitedCall(this.instance.error, args);
-		warn = (...args: any[]) => this.limitedCall(this.instance.warn, args);
-		notice = (...args: any[]) => this.limitedCall(this.instance.notice, args);
-		info = (...args: any[]) => this.limitedCall(this.instance.info, args);
-		verb = (...args: any[]) => this.limitedCall(this.instance.verb, args);
-		debug = (...args: any[]) => this.limitedCall(this.instance.debug, args);
-		wth = (...args: any[]) => this.limitedCall(this.instance.wth, args);
+		emerg = (...args: any[]) => this.limitedCall(this.instance.emerg, args); // eslint-disable-line @typescript-eslint/no-explicit-any
+		alert = (...args: any[]) => this.limitedCall(this.instance.alert, args); // eslint-disable-line @typescript-eslint/no-explicit-any
+		crit = (...args: any[]) => this.limitedCall(this.instance.crit, args); // eslint-disable-line @typescript-eslint/no-explicit-any
+		error = (...args: any[]) => this.limitedCall(this.instance.error, args); // eslint-disable-line @typescript-eslint/no-explicit-any
+		warn = (...args: any[]) => this.limitedCall(this.instance.warn, args); // eslint-disable-line @typescript-eslint/no-explicit-any
+		notice = (...args: any[]) => this.limitedCall(this.instance.notice, args); // eslint-disable-line @typescript-eslint/no-explicit-any
+		info = (...args: any[]) => this.limitedCall(this.instance.info, args); // eslint-disable-line @typescript-eslint/no-explicit-any
+		verb = (...args: any[]) => this.limitedCall(this.instance.verb, args); // eslint-disable-line @typescript-eslint/no-explicit-any
+		debug = (...args: any[]) => this.limitedCall(this.instance.debug, args); // eslint-disable-line @typescript-eslint/no-explicit-any
+		wth = (...args: any[]) => this.limitedCall(this.instance.wth, args); // eslint-disable-line @typescript-eslint/no-explicit-any
 	}
 
 	class LoggerInstance implements Logger {
@@ -111,6 +222,8 @@ export namespace Logger {
 
 		private onces: { [key: string]: boolean } = {};
 		private limits: { [key: string]: LoggerLimit } = {};
+
+		private lastLogTime = 0;
 
 		constructor(name_space: string, options: Logger.Options) {
 			this.namespace = name_space;
@@ -134,11 +247,11 @@ export namespace Logger {
 		}
 
 		get time(): boolean {
-			return this.options.time;
+			return this.options.date;
 		}
 
 		set time(b: boolean) {
-			this.options.time = b;
+			this.options.date = b;
 		}
 
 		get level(): Logger.Level {
@@ -168,15 +281,10 @@ export namespace Logger {
 		}
 
 		private log(logLevel: Logger.Level, args: any[]): void {
+			// eslint-disable-line @typescript-eslint/no-explicit-any
 			const maxLevel = Math.min(defaultInstanceOptions.level, this.options.level);
 			if (exclusiveLogger && exclusiveLogger !== this) return;
 			if (defaultInstanceOptions.enabled && this.options.enabled && logLevel <= maxLevel) {
-				const style = { ...baseStyle, ...styles[logLevel] };
-				const styleString = ObjectUtils.reduce<string[]>(
-					style,
-					(reduced, key, val) => [...reduced, `${key}:${val}`],
-					[]
-				).join(";");
 				let method = console.log;
 				switch (logLevel) {
 					case LogLevel.EMERGENCY:
@@ -198,16 +306,44 @@ export namespace Logger {
 						method = console.debug;
 						break;
 				}
-				// const stack = StackTrace.getSync();
-				// let label = labels[logLevel];
-				const prefix: string[] = [
-					`%c${labels[logLevel]}${this.namespace != DEFAULT_NAMESPACE ? ` "${this.namespace}"` : ""}`,
-					styleString,
-					// stack.map(sf => sf.functionName || "").pop() || "",
-				];
+				const prefix: string[] = [];
+
+				const levelLabel =
+					this.options.pad && LEVEL_INFOS[logLevel].paddedLabel
+						? LEVEL_INFOS[logLevel].paddedLabel
+						: LEVEL_INFOS[logLevel].label;
+				const debugPrefix = `${levelLabel}${this.namespace != DEFAULT_NAMESPACE ? ` "${this.namespace}"` : ""}`;
+
+				if (inBrowser) {
+					prefix.push(
+						`%c${debugPrefix}`,
+						browserLevelStyles![logLevel] // eslint-disable-line @typescript-eslint/no-non-null-assertion
+					);
+				}
+
+				if (this.options.date) {
+					const datePrefix = `[${format(new Date(), "yyyy-MM-dd kk:mm:ss.SSS")}]`;
+					prefix.push(datePrefix);
+				}
 
 				if (this.options.time) {
-					prefix.push(`[${format(new Date(), "yyyy-MM-dd kk:mm:ss.SSS")}]`);
+					const currentTime = new Date().getTime();
+
+					if (this.lastLogTime) {
+						const timeDiff = (currentTime - this.lastLogTime) / 1000;
+						const timePrefix = "[+" + (timeDiff ? `${timeDiff}` : "0.").padEnd(5, "0") + " s.]";
+						prefix.push(timePrefix);
+					}
+
+					this.lastLogTime = currentTime;
+				}
+
+				if (inNode) {
+					const style = fullLevelStyles[logLevel];
+					let colorize = chalk;
+					if (style.color) colorize = colorize.keyword(style.color);
+					if (style.backgroundColor) colorize = colorize.bgKeyword(style.backgroundColor);
+					prefix.push(this.options.pad ? colorize(` ${debugPrefix} `) : `[${debugPrefix}]`);
 				}
 
 				if (this.options.stack) {
@@ -215,10 +351,6 @@ export namespace Logger {
 					const fName = st[2]?.functionName;
 					if (fName) prefix.push(`< ${fName} >`);
 				}
-
-				// console.log(st);
-
-				// StackTrace.get().then(st => console.warn(st));
 
 				method.apply(console, [...prefix, ...args]);
 				// method.apply(console, [...prefix, ...args]);
@@ -232,6 +364,7 @@ export namespace Logger {
 			}
 		}
 
+		/* eslint-disable @typescript-eslint/no-explicit-any */
 		emerg = (...args: any[]) => this.log(LogLevel.EMERGENCY, args);
 		alert = (...args: any[]) => this.log(LogLevel.ALERT, args);
 		crit = (...args: any[]) => this.log(LogLevel.CRITICAL, args);
@@ -242,6 +375,7 @@ export namespace Logger {
 		verb = (...args: any[]) => this.log(LogLevel.VERBOSE, args);
 		debug = (...args: any[]) => this.log(LogLevel.DEBUG, args);
 		wth = (...args: any[]) => this.log(LogLevel.WHO_CARES, args);
+		/* eslint-enable */
 	}
 
 	export const ns = (ns: string, options: Partial<Logger.Options> = {}): Logger => {
@@ -253,87 +387,26 @@ export namespace Logger {
 		return registry[ns];
 	};
 
-	export const exclusive = (name_space?: string) => {
+	export const exclusive = (name_space?: string): void => {
 		warn(`${name_space} is exclusive`);
 		exclusiveLogger = name_space ? ns(name_space) : undefined;
 	};
 
-	const DEFAULT_NAMESPACE = "__default";
-
 	const defaultInstance = ns(DEFAULT_NAMESPACE);
 
-	const labels = [
-		"EMERGENCY",
-		"ALERT",
-		"CRITICAL",
-		"ERROR",
-		"WARNING",
-		"NOTICE",
-		"INFO",
-		"VERBOSE",
-		"DEBUG",
-		"WHO CARES?",
-	];
-	const baseStyle = {
-		color: "white",
-		"background-color": "#444",
-		padding: "2px 4px",
-		"border-radius": "2px",
-	};
+	/* eslint-disable @typescript-eslint/no-explicit-any */
+	export const emerg = (...args: any[]): void => defaultInstance.emerg(LogLevel.EMERGENCY, ...args);
+	export const alert = (...args: any[]): void => defaultInstance.alert(...args);
+	export const crit = (...args: any[]): void => defaultInstance.crit(...args);
+	export const error = (...args: any[]): void => defaultInstance.error(...args);
+	export const warn = (...args: any[]): void => defaultInstance.warn(...args);
+	export const notice = (...args: any[]): void => defaultInstance.notice(...args);
+	export const info = (...args: any[]): void => defaultInstance.info(...args);
+	export const verb = (...args: any[]): void => defaultInstance.verb(...args);
+	export const debug = (...args: any[]): void => defaultInstance.debug(...args);
+	export const wth = (...args: any[]): void => defaultInstance.wth(...args);
 
-	const styles = [
-		{
-			// EMERGENCY
-			"background-color": "red",
-		},
-		{
-			// ALERT
-			"background-color": "red",
-		},
-		{
-			// CRITICAL
-			"background-color": "red",
-		},
-		{
-			// ERROR
-			"background-color": "red",
-		},
-		{
-			// WARNING
-			"background-color": "orange",
-		},
-		{
-			// NOTICE
-			"background-color": "blue",
-		},
-		null, // INFO
-		{
-			// VERBOSE
-			"background-color": "green",
-		},
-		{
-			// DEBUG
-			"background-color": "yellow",
-			color: "black",
-		},
-		{
-			// WHO_CARES
-			"background-color": "lightgray",
-			color: "black",
-		},
-	];
-
-	export const emerg = (...args: any[]) => defaultInstance.emerg(LogLevel.EMERGENCY, ...args);
-	export const alert = (...args: any[]) => defaultInstance.alert(...args);
-	export const crit = (...args: any[]) => defaultInstance.crit(...args);
-	export const error = (...args: any[]) => defaultInstance.error(...args);
-	export const warn = (...args: any[]) => defaultInstance.warn(...args);
-	export const notice = (...args: any[]) => defaultInstance.notice(...args);
-	export const info = (...args: any[]) => defaultInstance.info(...args);
-	export const verb = (...args: any[]) => defaultInstance.verb(...args);
-	export const debug = (...args: any[]) => defaultInstance.debug(...args);
-	export const wth = (...args: any[]) => defaultInstance.wth(...args);
-
-	export const once = (id: string, ...args: any[]) => defaultInstance.once(id, ...args);
-	export const limit = (key: string, count: number) => defaultInstance.limit(key, count);
+	export const once = (id: string, ...args: any[]): void => defaultInstance.once(id, ...args);
+	export const limit = (key: string, count: number): LimitedLogger => defaultInstance.limit(key, count);
+	/* eslint-disable @typescript-eslint/no-explicit-any */
 }

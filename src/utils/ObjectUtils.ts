@@ -32,8 +32,8 @@ function jsonReviver(options: JSONOptions) {
 					? parse(v, options.dateFormat, new Date())
 					: null
 				: typeof v == "string"
-				? parseJSON(v)
-				: null;
+					? parseJSON(v)
+					: null;
 			if (isValid(dt)) return dt;
 		}
 		if (options.reviver) return options.reviver.call(this, k, v);
@@ -112,6 +112,12 @@ export namespace ObjectUtils {
 		const newObject: any = {};
 		assign(newObject, source, fields);
 		return newObject;
+	}
+
+	export function omit<T = any>(source: T, fields: (keyof T)[]): Partial<T> {
+		const ret = { ...source };
+		for (const k of fields) delete ret[k];
+		return ret;
 	}
 
 	export function exclude<T = any>(source: T, fields: (keyof T)[]): Partial<T> {
