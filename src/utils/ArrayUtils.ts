@@ -25,14 +25,26 @@ export namespace ArrayUtils {
 		return min;
 	}
 
-	export function nonadj<T = any>(arr: T[], equals: (test: T, compare: T) => boolean = (t, c) => t == c): T[] {
-		let v: T | undefined = undefined;
+	export function nonadj<T = any>(
+		arr: T[],
+		first = true,
+		equals: (test: T, compare: T) => boolean = (t, c) => t === c
+	): T[] {
+		let v: T | undefined;
 		const res: T[] = [];
+		const a = first ? arr : [...arr].reverse();
 
-		for (const cur of arr) {
+		// while ((v = arr[i++]) !== undefined) {
+		// 	if (!equals(arr[i], v)) res.push(arr[i]);
+		// }
+		// do {
+		// 	if (!equals(arr[i], v)) res.push(cur);
+		// } while (arr[++i] !== undefined);
+
+		for (const cur of a) {
 			if (v === undefined || !equals(cur, v)) res.push(cur);
 			v = cur;
 		}
-		return res;
+		return first ? res : res.reverse();
 	}
 }
