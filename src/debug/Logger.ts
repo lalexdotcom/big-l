@@ -1,17 +1,25 @@
 import { ObjectUtils } from "../utils/ObjectUtils";
-import StackTrace from "stacktrace-js";
 import { format } from "date-fns";
 import { EnvUtils } from "../utils/EnvUtils";
-import { Chalk } from "chalk";
-
-const DEFAULT_NAMESPACE = "__default";
+import type StackTrace from "stacktrace-js";
+import type { Chalk } from "chalk";
 
 const inBrowser = EnvUtils.isBrowser();
 const inNode = EnvUtils.isNode();
 
-const PAD = inNode;
+let stack: typeof StackTrace | undefined;
+try {
+	stack = require("stacktrace-js"); // eslint-disable-line
+} catch (e) {} // eslint-disable-line no-empty
 
-const chalk: Chalk = inNode ? require("chalk") : undefined;
+let chalk: Chalk | undefined;
+try {
+	chalk = inNode ? require("chalk") : undefined;
+} catch (e) {} // eslint-disable-line no-empty
+
+const DEFAULT_NAMESPACE = "__default";
+
+const PAD = inNode;
 
 export namespace Logger {
 	enum LogLevel {
@@ -347,13 +355,17 @@ export namespace Logger {
 
 				if (inNode) {
 					const style = fullLevelStyles[logLevel];
-					let colorize = chalk;
-					if (style.color) colorize = colorize.keyword(style.color);
-					if (style.backgroundColor) colorize = colorize.bgKeyword(style.backgroundColor);
+					let levelPrefix = debugPrefix;
+					if (chalk) {
+						let colorize = chalk;
+						if (style.color) colorize = colorize.keyword(style.color);
+						if (style.backgroundColor) colorize = colorize.bgKeyword(style.backgroundColor);
+						levelPrefix = colorize(` ${debugPrefix} `);
+					}
 					if (this.options.pad) {
-						prefix.unshift(colorize(` ${debugPrefix} `));
+						prefix.unshift(levelPrefix);
 					} else {
-						prefix.push(`[${debugPrefix}]`);
+						prefix.push(`[${levelPrefix}]`);
 					}
 				}
 
@@ -362,8 +374,8 @@ export namespace Logger {
 					prefix.unshift(datePrefix);
 				}
 
-				if (this.options.stack) {
-					const st = StackTrace.getSync();
+				if (this.options.stack && stack) {
+					const st = stack.getSync();
 					const fName = st[2]?.functionName;
 					if (fName) prefix.push(`< ${fName} >`);
 				}
