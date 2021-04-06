@@ -46,7 +46,5 @@
 	"dependencies": {
 		"date-fns": "^2.16.1"
 	},
-	"optionalDependencies": {
-		"winston": "^3.3.3"
-	}
+	"optionalDependencies": {}
 }
