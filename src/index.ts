@@ -7,4 +7,4 @@ export { ObjectUtils as LO } from "./utils/ObjectUtils";
 export { StringUtils as LS } from "./utils/StringUtils";
 export { EnvUtils as LE } from "./utils/EnvUtils";
 
-export { types } from "./types";
+export { types as Types } from "./types";
