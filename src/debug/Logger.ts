@@ -267,10 +267,18 @@ export namespace Logger {
 		}
 
 		get time(): boolean {
-			return this.options.date;
+			return this.options.time;
 		}
 
 		set time(b: boolean) {
+			this.options.time = b;
+		}
+
+		get date(): boolean {
+			return this.options.date;
+		}
+
+		set date(b: boolean) {
 			this.options.date = b;
 		}
 
