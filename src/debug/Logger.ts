@@ -174,12 +174,7 @@ export namespace Logger {
 		/* eslint-enable */
 	}
 
-	export interface Logger extends ILogger {
-		time: boolean;
-		stack: boolean;
-		enabled: boolean;
-		level: LogLevel;
-
+	export interface Logger extends ILogger, LogOptions {
 		once(key: string, ...args: any[]): void; // eslint-disable-line @typescript-eslint/no-explicit-any
 		limit(key: string, limit: number): LimitedLogger;
 	}
@@ -294,8 +289,16 @@ export namespace Logger {
 			exclusive(b ? this.namespace : undefined);
 		}
 
-		get exclusive(): boolean {
+		get exclusive() {
 			return exclusiveLogger === this;
+		}
+
+		set pad(b : boolean) {
+			this.options.pad = b;
+		}
+
+		get pad() {
+			return this.options.pad;
 		}
 
 		ns = ns;
