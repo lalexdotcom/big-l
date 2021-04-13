@@ -293,7 +293,7 @@ export namespace Logger {
 			return exclusiveLogger === this;
 		}
 
-		set pad(b : boolean) {
+		set pad(b: boolean) {
 			this.options.pad = b;
 		}
 
