@@ -366,13 +366,6 @@ export namespace Logger {
 					this._namespace != DEFAULT_NAMESPACE ? ` "${this._namespace}"` : ""
 				}`;
 
-				if (inBrowser) {
-					prefix.push(
-						`%c${debugPrefix}`,
-						browserLevelStyles![logLevel] // eslint-disable-line @typescript-eslint/no-non-null-assertion
-					);
-				}
-
 				if (this._options.time) {
 					const currentTime = new Date().getTime();
 
@@ -410,6 +403,13 @@ export namespace Logger {
 					const st = stack.getSync();
 					const fName = st[2]?.functionName;
 					if (fName) prefix.push(`< ${fName} >`);
+				}
+
+				if (inBrowser) {
+					prefix.unshift(
+						`%c${debugPrefix}`,
+						browserLevelStyles![logLevel] // eslint-disable-line @typescript-eslint/no-non-null-assertion
+					);
 				}
 
 				method(...prefix, ...args);
