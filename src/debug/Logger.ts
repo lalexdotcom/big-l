@@ -376,6 +376,8 @@ export namespace Logger {
 					}
 
 					this.lastLogTime = currentTime;
+				} else {
+					this.lastLogTime = new Date().getTime();
 				}
 
 				if (inNode) {
