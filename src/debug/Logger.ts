@@ -311,6 +311,18 @@ export namespace Logger {
 			}
 		}
 
+		private get __all() {
+			return registry;
+		}
+
+		private get __exclu() {
+			return exclusiveLogger;
+		}
+
+		private get __default() {
+			return defaultInstance;
+		}
+
 		private log(logLevel: Logger.Level, args: any[]): void {
 			// eslint-disable-line @typescript-eslint/no-explicit-any
 			const maxLevel = Math.min(defaultInstanceOptions.level, this.options.level);
