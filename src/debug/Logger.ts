@@ -245,7 +245,7 @@ export namespace Logger {
 			this._options = options;
 		}
 
-		get namespace() : string {
+		get namespace(): string {
 			return this._namespace;
 		}
 
@@ -359,7 +359,9 @@ export namespace Logger {
 					this._options.pad && LEVEL_INFOS[logLevel].paddedLabel
 						? LEVEL_INFOS[logLevel].paddedLabel
 						: LEVEL_INFOS[logLevel].label;
-				const debugPrefix = `${levelLabel}${this._namespace != DEFAULT_NAMESPACE ? ` "${this._namespace}"` : ""}`;
+				const debugPrefix = `${levelLabel}${
+					this._namespace != DEFAULT_NAMESPACE ? ` "${this._namespace}"` : ""
+				}`;
 
 				if (inBrowser) {
 					prefix.push(
