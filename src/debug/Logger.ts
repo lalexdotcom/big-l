@@ -232,61 +232,65 @@ export namespace Logger {
 	}
 
 	class LoggerInstance implements Logger {
-		private namespace: string;
-		private options: Logger.Options;
+		private _namespace: string;
+		private _options: Logger.Options;
 
-		private onces: { [key: string]: boolean } = {};
-		private limits: { [key: string]: LoggerLimit } = {};
+		private _onces: { [key: string]: boolean } = {};
+		private _limits: { [key: string]: LoggerLimit } = {};
 
 		private lastLogTime = 0;
 
 		constructor(name_space: string, options: Logger.Options) {
-			this.namespace = name_space;
-			this.options = options;
+			this._namespace = name_space;
+			this._options = options;
+		}
+
+		get namespace() : string {
+			return this._namespace;
 		}
 
 		get enabled(): boolean {
-			return this.options.enabled;
+			return this._options.enabled;
 		}
 
 		set enabled(b: boolean) {
-			this.options.enabled = b;
+			this._options.enabled = b;
 		}
 
 		get stack(): boolean {
-			return this.options.stack;
+			return this._options.stack;
 		}
 
 		set stack(b: boolean) {
-			this.options.stack = b;
+			this._options.stack = b;
 		}
 
 		get time(): boolean {
-			return this.options.time;
+			return this._options.time;
 		}
 
 		set time(b: boolean) {
-			this.options.time = b;
+			this._options.time = b;
 		}
 
 		get date(): boolean {
-			return this.options.date;
+			return this._options.date;
 		}
 
 		set date(b: boolean) {
-			this.options.date = b;
+			this._options.date = b;
 		}
 
 		get level(): Logger.Level {
-			return this.options.level;
+			return this._options.level;
 		}
 
 		set level(level: Logger.Level) {
-			this.options.level = level;
+			this._options.level = level;
 		}
 
 		set exclusive(b: boolean) {
-			exclusive(b ? this.namespace : undefined);
+			exclusive(b ? this._namespace : undefined);
 		}
 
 		get exclusive() {
@@ -294,20 +298,20 @@ export namespace Logger {
 		}
 
 		set pad(b: boolean) {
-			this.options.pad = b;
+			this._options.pad = b;
 		}
 
 		get pad() {
-			return this.options.pad;
+			return this._options.pad;
 		}
 
 		ns = ns;
 
 		limit(key: string, count: number): LimitedLogger {
-			if (this.limits[key]) {
-				return this.limits[key];
+			if (this._limits[key]) {
+				return this._limits[key];
 			} else {
-				return (this.limits[key] = new LoggerLimit(this, count));
+				return (this._limits[key] = new LoggerLimit(this, count));
 			}
 		}
 
@@ -325,9 +329,9 @@ export namespace Logger {
 
 		private log(logLevel: Logger.Level, args: any[]): void {
 			// eslint-disable-line @typescript-eslint/no-explicit-any
-			const maxLevel = Math.min(defaultInstanceOptions.level, this.options.level);
+			const maxLevel = Math.min(defaultInstanceOptions.level, this._options.level);
 			if (exclusiveLogger && exclusiveLogger !== this) return;
-			if (defaultInstanceOptions.enabled && this.options.enabled && logLevel <= maxLevel) {
+			if (defaultInstanceOptions.enabled && this._options.enabled && logLevel <= maxLevel) {
 				const method = LEVEL_INFOS[logLevel].method;
 				// switch (logLevel) {
 				// 	case LogLevel.EMERGENCY:
@@ -352,10 +356,10 @@ export namespace Logger {
 				const prefix: string[] = [];
 
 				const levelLabel =
-					this.options.pad && LEVEL_INFOS[logLevel].paddedLabel
+					this._options.pad && LEVEL_INFOS[logLevel].paddedLabel
 						? LEVEL_INFOS[logLevel].paddedLabel
 						: LEVEL_INFOS[logLevel].label;
-				const debugPrefix = `${levelLabel}${this.namespace != DEFAULT_NAMESPACE ? ` "${this.namespace}"` : ""}`;
+				const debugPrefix = `${levelLabel}${this._namespace != DEFAULT_NAMESPACE ? ` "${this._namespace}"` : ""}`;
 
 				if (inBrowser) {
 					prefix.push(
@@ -364,7 +368,7 @@ export namespace Logger {
 					);
 				}
 
-				if (this.options.time) {
+				if (this._options.time) {
 					const currentTime = new Date().getTime();
 
 					if (this.lastLogTime) {
@@ -385,19 +389,19 @@ export namespace Logger {
 						if (style.backgroundColor) colorize = colorize.bgKeyword(style.backgroundColor);
 						levelPrefix = colorize(` ${debugPrefix} `);
 					}
-					if (this.options.pad) {
+					if (this._options.pad) {
 						prefix.unshift(levelPrefix);
 					} else {
 						prefix.push(`[${levelPrefix}]`);
 					}
 				}
 
-				if (this.options.date) {
+				if (this._options.date) {
 					const datePrefix = `[${format(new Date(), "yyyy-MM-dd kk:mm:ss.SSS")}]`;
 					prefix.unshift(datePrefix);
 				}
 
-				if (this.options.stack && stack) {
+				if (this._options.stack && stack) {
 					const st = stack.getSync();
 					const fName = st[2]?.functionName;
 					if (fName) prefix.push(`< ${fName} >`);
@@ -409,8 +413,8 @@ export namespace Logger {
 		}
 
 		once(id: string, ...args: any[]) {
-			if (!this.onces[id]) {
-				this.onces[id] = true;
+			if (!this._onces[id]) {
+				this._onces[id] = true;
 				this.log(LogLevel.WHO_CARES, args);
 			}
 		}
