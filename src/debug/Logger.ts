@@ -175,7 +175,8 @@ export namespace Logger {
 	}
 
 	export interface Logger extends ILogger, LogOptions {
-		namespace: string;
+		readonly namespace: string;
+		exclusive: boolean;
 
 		once(key: string, ...args: any[]): void; // eslint-disable-line @typescript-eslint/no-explicit-any
 		limit(key: string, limit: number): LimitedLogger;
