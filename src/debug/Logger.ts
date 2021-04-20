@@ -7,7 +7,6 @@ import type { Chalk } from "chalk";
 const inBrowser = EnvUtils.isBrowser();
 const inNode = EnvUtils.isNode();
 
-
 let stack: typeof StackTrace | undefined;
 try {
 	stack = require("stacktrace-js"); // eslint-disable-line
@@ -192,7 +191,11 @@ export namespace Logger {
 
 	export type Options = LogOptions;
 
-	const omni: {registry:{ [ns: string]: LoggerInstance }, exclusive:Logger | undefined} = inBrowser ? window : inNode ? global : {} as any;
+	const omni: { registry: { [ns: string]: LoggerInstance }; exclusive: Logger | undefined } = inBrowser
+		? window
+		: inNode
+		? global
+		: ({} as any);
 
 	omni.registry = {} as { [ns: string]: LoggerInstance };
 
@@ -321,7 +324,7 @@ export namespace Logger {
 		}
 
 		private get __all() {
-			return {...omni.registry};
+			return { ...omni.registry };
 		}
 
 		private get __exclu() {
