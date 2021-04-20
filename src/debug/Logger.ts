@@ -7,6 +7,7 @@ import type { Chalk } from "chalk";
 const inBrowser = EnvUtils.isBrowser();
 const inNode = EnvUtils.isNode();
 
+
 let stack: typeof StackTrace | undefined;
 try {
 	stack = require("stacktrace-js"); // eslint-disable-line
@@ -191,8 +192,9 @@ export namespace Logger {
 
 	export type Options = LogOptions;
 
-	const registry: { [ns: string]: LoggerInstance } = {};
-	let exclusiveLogger: Logger | undefined;
+	const omni: {registry:{ [ns: string]: LoggerInstance }, exclusive:Logger | undefined} = inBrowser ? window : inNode ? global : {} as any;
+
+	omni.registry = {} as { [ns: string]: LoggerInstance };
 
 	const defaultInstanceOptions = { ...defaultOptions };
 
@@ -297,7 +299,7 @@ export namespace Logger {
 		}
 
 		get exclusive() {
-			return exclusiveLogger === this;
+			return omni.exclusive === this;
 		}
 
 		set pad(b: boolean) {
@@ -319,11 +321,11 @@ export namespace Logger {
 		}
 
 		private get __all() {
-			return registry;
+			return {...omni.registry};
 		}
 
 		private get __exclu() {
-			return exclusiveLogger;
+			return omni.exclusive;
 		}
 
 		private get __default() {
@@ -333,29 +335,9 @@ export namespace Logger {
 		private log(logLevel: Logger.Level, args: any[]): void {
 			// eslint-disable-line @typescript-eslint/no-explicit-any
 			const maxLevel = Math.min(defaultInstanceOptions.level, this._options.level);
-			if (exclusiveLogger && exclusiveLogger !== this) return;
+			if (omni.exclusive && omni.exclusive !== this) return;
 			if (defaultInstanceOptions.enabled && this._options.enabled && logLevel <= maxLevel) {
 				const method = LEVEL_INFOS[logLevel].method;
-				// switch (logLevel) {
-				// 	case LogLevel.EMERGENCY:
-				// 	case LogLevel.ALERT:
-				// 	case LogLevel.CRITICAL:
-				// 	case LogLevel.ERROR:
-				// 		method = console.error;
-				// 		break;
-				// 	case LogLevel.WARNING:
-				// 		method = console.warn;
-				// 		break;
-				// 	case LogLevel.NOTICE:
-				// 	case LogLevel.INFO:
-				// 		method = console.info;
-				// 		break;
-				// 	case LogLevel.DEBUG:
-				// 	case LogLevel.VERBOSE:
-				// 	case LogLevel.WHO_CARES:
-				// 		method = console.debug;
-				// 		break;
-				// }
 				const prefix: string[] = [];
 
 				const levelLabel =
@@ -441,17 +423,17 @@ export namespace Logger {
 	}
 
 	export const ns = (ns: string, options: Partial<Logger.Options> = {}): Logger => {
-		if (!registry[ns])
-			registry[ns] = new LoggerInstance(
+		if (!omni.registry[ns])
+			omni.registry[ns] = new LoggerInstance(
 				ns,
 				ns == DEFAULT_NAMESPACE ? defaultInstanceOptions : { ...defaultInstanceOptions, ...options }
 			);
-		return registry[ns];
+		return omni.registry[ns];
 	};
 
 	export const exclusive = (name_space?: string): void => {
 		warn(`${name_space} is exclusive`);
-		exclusiveLogger = name_space ? ns(name_space) : undefined;
+		omni.exclusive = name_space ? ns(name_space) : undefined;
 	};
 
 	const defaultInstance = ns(DEFAULT_NAMESPACE);
