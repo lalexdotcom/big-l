@@ -191,15 +191,13 @@ export namespace Logger {
 
 	export type Options = LogOptions;
 
-	const systemGlobal = inBrowser
-		? window
-		: inNode
-		? global
-		: ({} as any);
-	
-	const omni: { registry: { [ns: string]: LoggerInstance }; exclusive?: Logger} = systemGlobal.__big_l || (systemGlobal.__big_l = {
-		registry : {},
-	});
+	const systemGlobal = inBrowser ? window : inNode ? global : ({} as any);
+
+	const omni: { registry: { [ns: string]: LoggerInstance }; exclusive?: Logger } =
+		systemGlobal.__big_l ||
+		(systemGlobal.__big_l = {
+			registry: {},
+		});
 
 	const defaultInstanceOptions = { ...defaultOptions };
 
