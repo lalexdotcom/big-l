@@ -10,14 +10,14 @@ export type JSONOptions = {
 	exclude?: string[];
 	dateFormat?: string;
 	dateKeys?: string[];
-	handleDates?: true;
+	parseDates?: true;
 };
 
 function jsonReplacer(options: JSONOptions) {
 	return function (this: any, k: string, v: any) {
 		let value = v;
 		if (options.exclude && options.exclude.indexOf(k) >= 0) return undefined;
-		if ((options.dateFormat || options.handleDates) && this[k] instanceof Date)
+		if ((options.dateFormat || options.parseDates) && this[k] instanceof Date)
 			value = options.dateFormat ? format(this[k], options.dateFormat) : formatISO(this[k]);
 		if (typeof options.replacer === "function") value = options.replacer.call(this, k, value);
 		return value;
@@ -26,7 +26,7 @@ function jsonReplacer(options: JSONOptions) {
 
 function jsonReviver(options: JSONOptions) {
 	return function (this: any, k: string, v: any) {
-		if (options.handleDates || options.dateFormat || (options.dateKeys && options.dateKeys.indexOf(k) >= 0)) {
+		if (options.parseDates || options.dateFormat || (options.dateKeys && options.dateKeys.indexOf(k) >= 0)) {
 			const dt = options.dateFormat
 				? isMatch(`${v}`, options.dateFormat)
 					? parse(v, options.dateFormat, new Date())
