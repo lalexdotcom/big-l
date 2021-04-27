@@ -18,6 +18,6 @@ export namespace MoneyUtils {
 	}
 
 	export function difference(price: number, compare: number): number {
-		return (price - compare) / compare;
+		return (price - compare) / (compare > 0 ? compare : -compare);
 	}
 }
