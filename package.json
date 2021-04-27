@@ -22,6 +22,8 @@
 		"version": "npm run format && git add -A src",
 		"postversion": "git push && git push --tags",
 		"patch": "npm version patch",
+		"minor": "npm version minor",
+		"major": "npm version major",
 		"pub": "npm publish",
 		"np": "npm run np"
 	},
