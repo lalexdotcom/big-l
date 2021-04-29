@@ -47,4 +47,8 @@ export namespace ArrayUtils {
 		}
 		return first ? res : res.reverse();
 	}
+
+	export function sortBy<T>(arr: T[], field: keyof T): T[] {
+		return arr.sort((e1, e2) => (e1[field] == e2[field] ? 0 : e1[field] > e2[field] ? 1 : -1));
+	}
 }

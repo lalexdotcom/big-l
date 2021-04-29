@@ -79,6 +79,15 @@ export namespace StringUtils {
 		return joinToCase(splitFromCase(str, fromCase), toCase);
 	}
 
+	export function limit(text: string, size: number, ellipsis?: false) {
+		if (text.length > size) {
+			const ell = ellipsis === undefined || ellipsis;
+			text = text.substr(0, ell ? size - 1 : size);
+			if (ell) text += String.fromCharCode(8230);
+		}
+		return text;
+	}
+
 	// static camelToSnake(str: string): string {
 	// 	return this.joinToCase(this.splitFromCase(str, Case.CAMEL), Case.SNAKE);
 	// 	// let matches = str.match(/(([A-Z]?)[a-z]+)/g);
