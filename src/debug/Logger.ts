@@ -9,12 +9,12 @@ const inNode = EnvUtils.isNode();
 
 let stack: typeof StackTrace | undefined;
 try {
-	stack = require(`${"stacktrace-js"}`); // eslint-disable-line
+	stack = require("stacktrace-js".trim()); // eslint-disable-line
 } catch (e) {} // eslint-disable-line no-empty
 
 let chalk: Chalk | undefined;
 try {
-	chalk = inNode ? require(`${"chalk"}`) : undefined;
+	chalk = inNode ? require("chalk".trim()) : undefined;
 } catch (e) {} // eslint-disable-line no-empty
 
 const DEFAULT_NAMESPACE = "__default";
