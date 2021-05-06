@@ -4,5 +4,8 @@ export namespace types {
 		? ElementType
 		: never;
 	export type Basic = string | number | bigint | boolean | null | { [key: string]: Basic } | Basic[];
+	export namespace Basic {
+		export type Object = { [key: string]: Basic };
+	}
 	export type Async<T> = T | Promise<T>;
 }
