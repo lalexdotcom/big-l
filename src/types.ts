@@ -8,4 +8,5 @@ export namespace types {
 		export type Object = { [key: string]: Basic };
 	}
 	export type Async<T> = T | Promise<T>;
+	export type Promised<T> = T extends PromiseLike<infer U> ? U : T
 }
