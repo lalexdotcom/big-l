@@ -14,9 +14,15 @@ export namespace MoneyUtils {
 
 	export function margin(buy: number, taxOptions?: MarginTaxOptions): number;
 	export function margin(buy: number, sell: number, taxOptions?: MarginTaxOptions): number;
-	export function margin(buy: number, sellOrTaxOptions: number | MarginTaxOptions = {}, taxOptions: MarginTaxOptions = {}): number {
+	export function margin(
+		buy: number,
+		sellOrTaxOptions: number | MarginTaxOptions = {},
+		taxOptions: MarginTaxOptions = {}
+	): number {
 		if (typeof sellOrTaxOptions === "number") {
-			const income = (taxOptions.percent ? sub(sellOrTaxOptions, taxOptions.percent) : sellOrTaxOptions) - (taxOptions.offset || 0);
+			const income =
+				(taxOptions.percent ? sub(sellOrTaxOptions, taxOptions.percent) : sellOrTaxOptions) -
+				(taxOptions.offset || 0);
 			return 1 - buy / income;
 		} else {
 			const newPrice = buy / (1 - (sellOrTaxOptions.percent || 0)) + (taxOptions.offset || 0);
