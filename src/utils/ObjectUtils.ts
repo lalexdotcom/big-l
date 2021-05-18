@@ -32,8 +32,8 @@ function jsonReviver(options: JSONOptions) {
 					? parse(v, options.dateFormat, new Date())
 					: null
 				: typeof v == "string"
-				? parseJSON(v)
-				: null;
+					? parseJSON(v)
+					: null;
 			if (isValid(dt)) return dt;
 		}
 		if (options.reviver) return options.reviver.call(this, k, v);
@@ -210,5 +210,29 @@ export namespace ObjectUtils {
 		else obj = JSON.parse(text, options ? jsonReviver(options) : undefined);
 		if (options?.keyTransform) obj = ObjectUtils.mapKeys(obj, options.keyTransform, true);
 		return obj;
+	}
+
+	export function eq(o1: any, o2: any): boolean {
+		if (o1 === null || o1 === undefined || o2 === null || o2 === undefined) { return o1 === o2; }
+		// after this just checking type of one would be enough
+		if (o1.constructor !== o2.constructor) { return false; }
+		// if they are functions, they should exactly refer to same one (because of closures)
+		if (o1 instanceof Function) { return o1 === o2; }
+		// if they are regexps, they should exactly refer to same one (it is hard to better equality check on current ES)
+		if (o1 instanceof RegExp) { return o1 === o2; }
+		if (o1 === o2 || o1.valueOf() === o2.valueOf()) { return true; }
+		if (Array.isArray(o1) && o1.length !== o2.length) { return false; }
+
+		// if they are dates, they must had equal valueOf
+		if (o1 instanceof Date) { return false; }
+
+		// if they are strictly equal, they both need to be object at least
+		if (!(o1 instanceof Object)) { return false; }
+		if (!(o1 instanceof Object)) { return false; }
+
+		// recursive object equality check
+		var p = Object.keys(o1);
+		return Object.keys(o2).every(function (i) { return p.indexOf(i) !== -1; }) &&
+			p.every(function (i) { return eq(o1[i], o2[i]); });
 	}
 }
