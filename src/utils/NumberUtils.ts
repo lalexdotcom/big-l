@@ -25,8 +25,13 @@ export namespace NumberUtils {
 	}
 
 	export function minmax(...nums: number[]) {
-		let min = Number.POSITIVE_INFINITY, max = Number.NEGATIVE_INFINITY;
-		for (let i = nums.length; i >= 0; min = nums[i] < min ? nums[i] : min, max = nums[i] > max ? nums[i] : max, i--);
+		let min = Number.POSITIVE_INFINITY,
+			max = Number.NEGATIVE_INFINITY;
+		for (
+			let i = nums.length;
+			i >= 0;
+			min = nums[i] < min ? nums[i] : min, max = nums[i] > max ? nums[i] : max, i--
+		);
 		return { min, max };
 	}
 
