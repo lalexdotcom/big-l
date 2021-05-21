@@ -10,12 +10,12 @@ const inNode = EnvUtils.isNode();
 let stack: typeof StackTrace | undefined;
 try {
 	stack = require("stacktrace-js".trim()); // eslint-disable-line
-} catch (e) {} // eslint-disable-line no-empty
+} catch (e) { } // eslint-disable-line no-empty
 
 let chalk: Chalk | undefined;
 try {
 	chalk = inNode ? require("chalk".trim()) : undefined;
-} catch (e) {} // eslint-disable-line no-empty
+} catch (e) { } // eslint-disable-line no-empty
 
 const DEFAULT_NAMESPACE = "__default";
 
@@ -347,9 +347,8 @@ export namespace Logger {
 					this._options.pad && LEVEL_INFOS[logLevel].paddedLabel
 						? LEVEL_INFOS[logLevel].paddedLabel
 						: LEVEL_INFOS[logLevel].label;
-				const debugPrefix = `${levelLabel}${
-					this._namespace != DEFAULT_NAMESPACE ? ` "${this._namespace}"` : ""
-				}`;
+				const debugPrefix = `${levelLabel}${this._namespace != DEFAULT_NAMESPACE ? ` "${this._namespace}"` : ""
+					}`;
 
 				if (this._options.time) {
 					const currentTime = new Date().getTime();
@@ -379,6 +378,10 @@ export namespace Logger {
 					} else {
 						prefix.push(`[${levelPrefix}]`);
 					}
+					try {
+						const util = require('util'.trim());
+						args = args.map(arg => typeof arg === "object" ? util.inspect(arg, false, null, true) : arg);
+					} catch (e) { };
 				}
 
 				if (this._options.date) {

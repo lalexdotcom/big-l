@@ -24,6 +24,12 @@ export namespace NumberUtils {
 		return price - mod + (mod < precision / 2 ? 0 : precision);
 	}
 
+	export function minmax(...nums: number[]) {
+		let min = Number.POSITIVE_INFINITY, max = Number.NEGATIVE_INFINITY;
+		for (let i = nums.length; i >= 0; min = nums[i] < min ? nums[i] : min, max = nums[i] > max ? nums[i] : max, i--);
+		return { min, max };
+	}
+
 	// export function addPercent(price: number, percent: number, decimals: number | null = null): number {
 	// 	const newPrice = price * (1 + percent);
 	// 	return decimals === null ? newPrice : round(newPrice, decimals);
