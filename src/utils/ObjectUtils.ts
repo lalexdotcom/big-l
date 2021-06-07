@@ -7,7 +7,7 @@ export type JSONOptions = {
 	replacer?: ((this: any, key: string, value: any) => any) | (number | string)[] | null;
 	reviver?: (this: any, key: string, value: any) => any;
 	keyTransform?: (key: string) => string;
-	exclude?: string[];
+	exclude?: string[] | ((key: string, value?: any, thisObject?: any) => boolean);
 	dateFormat?: string;
 	dateKeys?: string[];
 	parseDates?: true;
@@ -16,7 +16,10 @@ export type JSONOptions = {
 function jsonReplacer(options: JSONOptions) {
 	return function (this: any, k: string, v: any) {
 		let value = v;
-		if (options.exclude && options.exclude.indexOf(k) >= 0) return undefined;
+		if (options.exclude) {
+			if (typeof options.exclude === "function" && options.exclude(k, this[k], this)) return undefined;
+			if (Array.isArray(options.exclude) && options.exclude.indexOf(k) >= 0) return undefined;
+		}
 		if ((options.dateFormat || options.parseDates) && this[k] instanceof Date)
 			value = options.dateFormat ? format(this[k], options.dateFormat) : formatISO(this[k]);
 		if (typeof options.replacer === "function") value = options.replacer.call(this, k, value);
@@ -32,8 +35,8 @@ function jsonReviver(options: JSONOptions) {
 					? parse(v, options.dateFormat, new Date())
 					: null
 				: typeof v == "string"
-				? parseJSON(v)
-				: null;
+					? parseJSON(v)
+					: null;
 			if (isValid(dt)) return dt;
 		}
 		if (options.reviver) return options.reviver.call(this, k, v);

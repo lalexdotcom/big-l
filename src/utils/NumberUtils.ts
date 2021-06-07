@@ -24,15 +24,23 @@ export namespace NumberUtils {
 		return price - mod + (mod < precision / 2 ? 0 : precision);
 	}
 
-	export function minmax(...nums: number[]) {
+	export function minmax(options: { avg?: true, sum?: true }, ...nums: number[]): { min: number, max: number } & (typeof options.avg extends true ? { avg: number } : {}) & (typeof options.sum extends true ? { sum: number } : {});
+	export function minmax(options?: { avg?: true, sum?: true }, ...nums: number[]): { min: number, max: number, avg?: number, sum?: number } {
 		let min = Number.POSITIVE_INFINITY,
-			max = Number.NEGATIVE_INFINITY;
+			max = Number.NEGATIVE_INFINITY,
+			count = nums.length,
+			sum = 0;
 		for (
-			let i = nums.length;
+			let i = count;
 			i >= 0;
 			min = nums[i] < min ? nums[i] : min, max = nums[i] > max ? nums[i] : max, i--
-		);
-		return { min, max };
+		) {
+			if (options?.sum || options?.sum) sum += nums[i]
+		};
+		const result: { min: number, max: number, avg?: number, sum?: number } = { min, max };
+		if (options?.avg) result.avg = sum / count;
+		if (options?.sum) result.sum = sum;
+		return result;
 	}
 
 	// export function addPercent(price: number, percent: number, decimals: number | null = null): number {
