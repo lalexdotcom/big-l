@@ -6,7 +6,7 @@ export type ArrayElement<AT extends readonly unknown[]> = AT extends readonly (i
 
 export type MapKey<MT> = MT extends Map<infer KT, any> ? KT : never;
 export type MapElement<MT> = MT extends Map<any, infer ET> ? ET : never;
-export type IndexElement<T> = T extends object ? T[keyof T] : never;
+export type IndexElement<T, KT extends keyof T = keyof T> = T extends object ? T[KT] : never;
 
 export type Complete<T> = {
 	[P in keyof Required<T>]: Pick<T, P> extends Required<Pick<T, P>> ? T[P] : (T[P] | undefined);
