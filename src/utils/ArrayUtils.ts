@@ -66,12 +66,13 @@ export namespace ArrayUtils {
 				default:
 					return `${v}`;
 			}
-		}
+		};
 		const compareFunction = (o1: T, o2: T) => {
-			const v1 = comparableAccessor(o1), v2 = comparableAccessor(o2);
+			const v1 = comparableAccessor(o1),
+				v2 = comparableAccessor(o2);
 			Logger.debug("Compare", v1, v2);
 			return (desc ? -1 : 1) * (v1 == v2 ? 0 : v1 < v2 ? -1 : 1);
-		}
+		};
 		return arr.sort(compareFunction);
 	}
 }
