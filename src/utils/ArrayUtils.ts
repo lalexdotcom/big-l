@@ -1,3 +1,5 @@
+import { Logger } from "../debug/Logger";
+
 export namespace ArrayUtils {
 	export function first<T>(arr: T[]): T | undefined {
 		return arr[0];
@@ -48,7 +50,28 @@ export namespace ArrayUtils {
 		return first ? res : res.reverse();
 	}
 
-	export function sortBy<T>(arr: T[], field: keyof T): T[] {
-		return arr.sort((e1, e2) => (e1[field] == e2[field] ? 0 : e1[field] > e2[field] ? 1 : -1));
+	export function sortBy<T>(arr: T[], fieldOrAccessor: keyof T | ((o: T) => any), desc?: boolean): T[] {
+		const accessor = typeof fieldOrAccessor === "function" ? fieldOrAccessor : (o: T) => o[fieldOrAccessor];
+		const comparableAccessor = (o: T): string | number | bigint => {
+			const v = accessor(o);
+			switch (true) {
+				case typeof v === "number" || typeof v === "string" || typeof v === "bigint":
+					return v;
+				case v instanceof Date:
+					return v.getTime();
+				case v === undefined || v === null:
+					return Number.NEGATIVE_INFINITY;
+				case typeof v === "boolean":
+					return v ? 1 : 0;
+				default:
+					return `${v}`;
+			}
+		}
+		const compareFunction = (o1: T, o2: T) => {
+			const v1 = comparableAccessor(o1), v2 = comparableAccessor(o2);
+			Logger.debug("Compare", v1, v2);
+			return (desc ? -1 : 1) * (v1 == v2 ? 0 : v1 < v2 ? -1 : 1);
+		}
+		return arr.sort(compareFunction);
 	}
 }

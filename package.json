@@ -13,7 +13,7 @@
 	"scripts": {
 		"build": "rm -rf lib && tsc --project .",
 		"watch": "rm -rf lib && tsc --watch --project .",
-		"test": "nodemon src/test.ts",
+		"test": "ts-node src/test.ts",
 		"format": "prettier --write src/**/*.ts",
 		"lint": "eslint",
 		"prepare": "npm run build",

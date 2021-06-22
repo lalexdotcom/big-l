@@ -1,13 +1,5 @@
-import {LG} from './debug/Logger';
-LG.warn("Test");
-
-// Logger.emergency("Test", [{ test: true, text: "My life" }]);
-// Logger.alert("Test", [{ test: true, text: "My life" }]);
-// Logger.critical("Test", [{ test: true, text: "My life" }]);
-// Logger.error("Test", [{ test: true, text: "My life" }]);
-// Logger.warning("Test", [{ test: true, text: "My life" }]);
-// Logger.notice("Test", [{ test: true, text: "My life" }]);
-// Logger.info("Test", [{ test: true, text: "My life" }]);
-// Logger.verbose("Test", [{ test: true, text: "My life" }]);
-// Logger.debug("Test", [{ test: true, text: "My life" }]);
-// Logger.whoCares("Test", [{ test: true, text: "My life" }]);
+import { ArrayUtils } from './utils/ArrayUtils';
+const arr = [{ date: new Date(), name: 'lalex' }, { date: new Date(new Date().getTime() - 5948), name: 'before' }, { date: new Date(new Date().getTime() + 32186), name:'after' }];
+console.log([...arr]);
+ArrayUtils.sortBy(arr, 'date');
+console.log([...arr]);

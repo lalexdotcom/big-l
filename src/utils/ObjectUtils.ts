@@ -35,8 +35,8 @@ function jsonReviver(options: JSONOptions) {
 					? parse(v, options.dateFormat, new Date())
 					: null
 				: typeof v == "string"
-				? parseJSON(v)
-				: null;
+					? parseJSON(v)
+					: null;
 			if (isValid(dt)) return dt;
 		}
 		if (options.reviver) return options.reviver.call(this, k, v);
