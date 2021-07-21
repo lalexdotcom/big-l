@@ -27,27 +27,43 @@ export namespace ArrayUtils {
 		return min;
 	}
 
-	export function nonadj<T = any>(
+	export function clearAdjacent<T = any>(
 		arr: T[],
-		first = true,
-		equals: (test: T, compare: T) => boolean = (t, c) => t === c
+		keepFirst = true,
+		compareFieldsOrFunction?: keyof T | (keyof T)[] | ((test: T, compare: T) => boolean)
 	): T[] {
-		let v: T | undefined;
-		const res: T[] = [];
-		const a = first ? arr : [...arr].reverse();
+		let lastValue: T | undefined;
+		const result: T[] = [],
+			workArray = keepFirst ? arr : [...arr].reverse();
+		let compareFunction: (test: T, compare: T) => boolean = (t, c) => t === c;
 
-		// while ((v = arr[i++]) !== undefined) {
-		// 	if (!equals(arr[i], v)) res.push(arr[i]);
-		// }
-		// do {
-		// 	if (!equals(arr[i], v)) res.push(cur);
-		// } while (arr[++i] !== undefined);
-
-		for (const cur of a) {
-			if (v === undefined || !equals(cur, v)) res.push(cur);
-			v = cur;
+		if (compareFieldsOrFunction) {
+			if (typeof compareFieldsOrFunction === "function") {
+				compareFunction = compareFieldsOrFunction;
+			} else {
+				const compareFields = Array.isArray(compareFieldsOrFunction)
+					? compareFieldsOrFunction
+					: [compareFieldsOrFunction];
+				compareFunction = (t: T, c: T) => {
+					for (const k of compareFields) {
+						if (t[k] !== c[k]) return false;
+					}
+					return true;
+				};
+			}
 		}
-		return first ? res : res.reverse();
+
+		for (const currentValue of workArray) {
+			if (
+				lastValue === undefined ||
+				(!!compareFunction && !compareFunction(currentValue, lastValue)) ||
+				currentValue !== lastValue
+			) {
+				result.push(currentValue);
+			}
+			lastValue = currentValue;
+		}
+		return keepFirst ? result : result.reverse();
 	}
 
 	export function sortBy<T>(arr: T[], fieldOrAccessor: keyof T | ((o: T) => any), desc?: boolean): T[] {
