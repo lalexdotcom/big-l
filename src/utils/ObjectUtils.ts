@@ -73,7 +73,7 @@ export namespace ObjectUtils {
 		return reduced;
 	}
 
-	export function mapKeys(o: any, fct: (key: string, value?:any) => string, recursive = false): any {
+	export function mapKeys(o: any, fct: (key: string, value?: any) => string, recursive = false): any {
 		if (typeof o != "object") return o;
 		if (Array.isArray(o)) return o.map(ae => mapKeys(ae, fct, recursive));
 		const r: any = {};
