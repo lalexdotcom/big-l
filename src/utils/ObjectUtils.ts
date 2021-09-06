@@ -1,6 +1,6 @@
 import { format, formatISO, isMatch, parse, parseJSON, isValid } from "date-fns";
 
-const UID_KEY = "__$$uid";
+const UID_KEY = "__$biglUID$__";
 let UID_INDEX = 0;
 
 export type JSONOptions = {
@@ -45,6 +45,8 @@ function jsonReviver(options: JSONOptions) {
 }
 
 export namespace ObjectUtils {
+	export function uid(o: object): string;
+	export function uid(o: string | number | boolean | Function | bigint | null | undefined): null;
 	export function uid(o: any): string | null {
 		if (typeof o == "object") {
 			if (!o[UID_KEY]) {
