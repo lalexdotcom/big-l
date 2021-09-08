@@ -57,7 +57,7 @@ export namespace ArrayUtils {
 			if (
 				lastValue === undefined ||
 				(!!compareFunction && !compareFunction(currentValue, lastValue)) ||
-				currentValue !== lastValue
+				(!compareFunction && currentValue !== lastValue)
 			) {
 				result.push(currentValue);
 			}
