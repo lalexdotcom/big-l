@@ -110,7 +110,7 @@ export namespace ObjectUtils {
 		return true;
 	}
 
-	export function pick<T, K extends keyof T>(source: T, keys: K[]): { [P in K]: T[P] };
+	// export function pick<T, K extends keyof T>(source: T, keys: K[]): { [P in K]: T[P] };
 	export function pick<T = any>(
 		source: T,
 		fields?: (keyof T | { [targetKey: string]: keyof T | ((o: T) => any) })[]
