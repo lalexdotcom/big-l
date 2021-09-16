@@ -6,10 +6,10 @@ export namespace StringUtils {
 		PASCAL = "CASE/Pascal",
 	}
 
-	export function capitalize(str: string, separator = " "): string {
+	export function capitalize(str: string, lowerize = true, separator = " "): string {
 		return str
 			.split(separator)
-			.map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+			.map(s => s.charAt(0).toUpperCase() + (lowerize ? s.slice(1).toLowerCase() : s.slice(1)))
 			.join(separator);
 	}
 

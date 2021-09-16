@@ -45,8 +45,8 @@ function jsonReviver(options: JSONOptions) {
 }
 
 export namespace ObjectUtils {
-	export function uid(o: object): string;
-	export function uid(o: string | number | boolean | Function | bigint | null | undefined): null;
+	export function uid(o: Record<string, unknown>): string;
+	export function uid(o: string | number | boolean | (() => any) | bigint | null | undefined): null;
 	export function uid(o: any): string | null {
 		if (typeof o == "object") {
 			if (!o[UID_KEY]) {
@@ -110,6 +110,7 @@ export namespace ObjectUtils {
 		return true;
 	}
 
+	export function pick<T, K extends keyof T>(source: T, keys: K[]): { [P in K]: T[P] };
 	export function pick<T = any>(
 		source: T,
 		fields?: (keyof T | { [targetKey: string]: keyof T | ((o: T) => any) })[]
@@ -254,7 +255,7 @@ export namespace ObjectUtils {
 		}
 
 		// recursive object equality check
-		var p = Object.keys(o1);
+		const p = Object.keys(o1);
 		return (
 			Object.keys(o2).every(function (i) {
 				return p.indexOf(i) !== -1;

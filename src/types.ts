@@ -9,11 +9,15 @@ export type MapKey<MT> = MT extends Map<infer KT, any> ? KT : never;
 export type MapElement<MT> = MT extends Map<any, infer ET> ? ET : never;
 export type IndexElement<T, KT extends keyof T = keyof T> = T extends object ? T[KT] : never;
 
+// Object
+export type PropertyType<OT> = OT[keyof OT];
+
 export type Complete<T> = {
 	[P in keyof Required<T>]: Pick<T, P> extends Required<Pick<T, P>> ? T[P] : T[P] | undefined;
 };
 export type UnRequire<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 export type Filled<T> = { [P in keyof T]-?: NonNullable<T[P]> };
+export type UnFilled<T> = { [P in keyof T]: T[P] | null };
 
 // Basic types
 export type Basic = string | number | bigint | boolean | null | { [key: string]: Basic } | Basic[];
