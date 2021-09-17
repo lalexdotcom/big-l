@@ -66,7 +66,7 @@ export namespace ArrayUtils {
 		return keepFirst ? result : result.reverse();
 	}
 
-	export function sortFunction<T = any>(fieldOrAccessor: keyof T | ((o: T) => any), desc?:boolean) {
+	export function sortFunction<T = any>(fieldOrAccessor: keyof T | ((o: T) => any), desc?: boolean) {
 		const accessor = typeof fieldOrAccessor === "function" ? fieldOrAccessor : (o: T) => o[fieldOrAccessor];
 		const comparableAccessor = (o: T): string | number | bigint => {
 			const v = accessor(o);
