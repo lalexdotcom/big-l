@@ -66,7 +66,10 @@ export namespace ArrayUtils {
 		return keepFirst ? result : result.reverse();
 	}
 
-	export function sortFunction<T = any>(fieldOrAccessor: number | symbol | string | ((o: any) => any), desc?: boolean) {
+	export function sortFunction<T = any>(
+		fieldOrAccessor: number | symbol | string | ((o: any) => any),
+		desc?: boolean
+	) {
 		const accessor =
 			typeof fieldOrAccessor === "function"
 				? fieldOrAccessor
