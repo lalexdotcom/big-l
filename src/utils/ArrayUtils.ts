@@ -66,7 +66,7 @@ export namespace ArrayUtils {
 		return keepFirst ? result : result.reverse();
 	}
 
-	export function sortBy<T>(arr: T[], fieldOrAccessor: keyof T | ((o: T) => any), desc?: boolean): T[] {
+	export function sortFunction<T = any>(fieldOrAccessor: keyof T | ((o: T) => any), desc?:boolean) {
 		const accessor = typeof fieldOrAccessor === "function" ? fieldOrAccessor : (o: T) => o[fieldOrAccessor];
 		const comparableAccessor = (o: T): string | number | bigint => {
 			const v = accessor(o);
@@ -86,9 +86,12 @@ export namespace ArrayUtils {
 		const compareFunction = (o1: T, o2: T) => {
 			const v1 = comparableAccessor(o1),
 				v2 = comparableAccessor(o2);
-			Logger.debug("Compare", v1, v2);
 			return (desc ? -1 : 1) * (v1 == v2 ? 0 : v1 < v2 ? -1 : 1);
 		};
-		return arr.sort(compareFunction);
+		return compareFunction;
+	}
+
+	export function sortBy<T>(arr: T[], fieldOrAccessor: keyof T | ((o: T) => any), desc?: boolean): T[] {
+		return arr.sort(sortFunction<T>(fieldOrAccessor, desc));
 	}
 }
