@@ -71,18 +71,18 @@ export namespace ArrayUtils {
 			typeof fieldOrAccessor === "function"
 				? fieldOrAccessor
 				: (o: any) => {
-					let v = o;
-					if (typeof fieldOrAccessor === "string") {
-						const path = fieldOrAccessor.split(".");
-						let prop: string | undefined;
-						while ((prop = path.shift())) {
-							v = v[prop];
+						let v = o;
+						if (typeof fieldOrAccessor === "string") {
+							const path = fieldOrAccessor.split(".");
+							let prop: string | undefined;
+							while ((prop = path.shift())) {
+								v = v[prop];
+							}
+						} else {
+							v = o[fieldOrAccessor];
 						}
-					} else {
-						v = o[fieldOrAccessor];
-					}
-					return v;
-				};
+						return v;
+				  };
 		const comparableAccessor = (o: any): string | number | bigint => {
 			const v = accessor(o);
 			switch (true) {
