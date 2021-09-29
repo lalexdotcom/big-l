@@ -82,7 +82,7 @@ export namespace ObjectUtils {
 		for (const k in o) {
 			const v = o[k];
 			r[fct(k, v)] =
-				recursive && (v.constructor == Object || v.constructor == Array) ? mapKeys(o[k], fct, true) : o[k];
+				recursive && v && (v.constructor == Object || v.constructor == Array) ? mapKeys(o[k], fct, true) : o[k];
 		}
 		return r;
 	}

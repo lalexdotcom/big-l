@@ -59,58 +59,58 @@ export namespace Logger {
 	};
 
 	const LEVEL_INFOS: {
-		[key in LogLevel]: LogLevelStyle & { label: string; paddedLabel?: string; method: typeof console.info };
+		[key in LogLevel]: LogLevelStyle & { label: string; paddedLabel?: string; method: (typeof console.info)[] };
 	} = {
 		[LogLevel.EMERGENCY]: {
 			label: "EMERGENCY",
 			backgroundColor: "red",
-			method: console.error,
+			method: [console.error, console.trace],
 		},
 		[LogLevel.ALERT]: {
 			label: "ALERT",
 			backgroundColor: "red",
-			method: console.error,
+			method: [console.error, console.trace],
 		},
 		[LogLevel.CRITICAL]: {
 			label: "CRITICAL",
 			backgroundColor: "red",
-			method: console.error,
+			method: [console.error, console.trace],
 		},
 		[LogLevel.ERROR]: {
 			label: "ERROR",
 			backgroundColor: "red",
-			method: console.error,
+			method: [console.error, console.trace],
 		},
 		[LogLevel.WARNING]: {
 			label: "WARNING",
 			backgroundColor: "orange",
-			method: console.warn,
+			method: [console.warn],
 		},
 		[LogLevel.NOTICE]: {
 			label: "NOTICE",
 			backgroundColor: "blue",
-			method: console.info,
+			method: [console.info],
 		},
 		[LogLevel.INFO]: {
 			label: "INFO",
-			method: console.info,
+			method: [console.info],
 		},
 		[LogLevel.VERBOSE]: {
 			label: "VERBOSE",
 			backgroundColor: "green",
-			method: console.debug,
+			method: [console.debug],
 		},
 		[LogLevel.DEBUG]: {
 			label: "DEBUG",
 			backgroundColor: "yellow",
 			color: "black",
-			method: console.debug,
+			method: [console.debug],
 		},
 		[LogLevel.WHO_CARES]: {
 			label: "WHO CARES?",
 			backgroundColor: "lightgray",
 			color: "black",
-			method: console.debug,
+			method: [console.debug],
 		},
 	};
 
@@ -340,7 +340,7 @@ export namespace Logger {
 			const maxLevel = Math.min(defaultInstanceOptions.level, this._options.level);
 			if (omni.exclusive && omni.exclusive !== this) return;
 			if (defaultInstanceOptions.enabled && this._options.enabled && logLevel <= maxLevel) {
-				const method = LEVEL_INFOS[logLevel].method;
+				const methods = LEVEL_INFOS[logLevel].method;
 				const prefix: string[] = [];
 
 				const levelLabel =
@@ -403,7 +403,7 @@ export namespace Logger {
 					);
 				}
 
-				method(...prefix, ...args);
+				for (const method of methods) method(...prefix, ...args);
 				// method.apply(console, [...prefix, ...args]);
 			}
 		}

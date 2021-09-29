@@ -66,8 +66,10 @@ export namespace ArrayUtils {
 		return keepFirst ? result : result.reverse();
 	}
 
+	type SortField = number | symbol | string | ((o: any) => any);
+
 	export function sortFunction<T = any>(
-		fieldOrAccessor: number | symbol | string | ((o: any) => any),
+		fieldOrAccessor: SortField,
 		desc?: boolean
 	) {
 		const accessor =
