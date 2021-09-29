@@ -68,10 +68,7 @@ export namespace ArrayUtils {
 
 	type SortField = number | symbol | string | ((o: any) => any);
 
-	export function sortFunction<T = any>(
-		fieldOrAccessor: SortField,
-		desc?: boolean
-	) {
+	export function sortFunction<T = any>(fieldOrAccessor: SortField, desc?: boolean) {
 		const accessor =
 			typeof fieldOrAccessor === "function"
 				? fieldOrAccessor

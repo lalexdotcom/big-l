@@ -59,7 +59,7 @@ export namespace Logger {
 	};
 
 	const LEVEL_INFOS: {
-		[key in LogLevel]: LogLevelStyle & { label: string; paddedLabel?: string; method: (typeof console.info)[] };
+		[key in LogLevel]: LogLevelStyle & { label: string; paddedLabel?: string; method: typeof console.info[] };
 	} = {
 		[LogLevel.EMERGENCY]: {
 			label: "EMERGENCY",
