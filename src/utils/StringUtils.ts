@@ -88,6 +88,46 @@ export namespace StringUtils {
 		return text;
 	}
 
+	// Micro template engine.
+	// {{var}} get replaced if found in variables parameter
+	// (works with value path in object or array: 'foo.bar', 'arr.1.name', ...)
+	//
+	// {{var||default}} get replaced with default value if not found
+	// {{var||%%default}} same as above, force numeric value if json
+	export function template(input: string, variables: any, json?: boolean) {
+		const rgxp = /(['"']?){{([^\s]+?)(?:(?:\|\|(.*))?)}}(\1)/g;
+		const cached: { [key: string]: any } = {};
+		const replaced = input.replace(rgxp, (found, ...args: string[]) => {
+			console.debug("Replace", ...args);
+			const [quote, key, def] = args;
+			let value = cached[key];
+			if (value === undefined) {
+				let currentValue = variables;
+				const path = key.split(".");
+				while (path.length && typeof currentValue == "object") {
+					currentValue = currentValue[path.shift()!];
+				}
+				value = cached[key] = currentValue;
+			}
+			if (value === undefined) {
+				if (def !== undefined && json && def.startsWith("%%")) {
+					value = parseFloat(def.substr(2));
+				} else {
+					value = def;
+				}
+			}
+
+			if (value === undefined) return found;
+
+			if (json) {
+				return JSON.stringify(value);
+			} else {
+				return quote + `${value}` + quote;
+			}
+		});
+		return replaced;
+	}
+
 	// static camelToSnake(str: string): string {
 	// 	return this.joinToCase(this.splitFromCase(str, Case.CAMEL), Case.SNAKE);
 	// 	// let matches = str.match(/(([A-Z]?)[a-z]+)/g);

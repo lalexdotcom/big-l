@@ -7,5 +7,6 @@ export { MoneyUtils as LM } from "./utils/MoneyUtils";
 export { ObjectUtils as LO } from "./utils/ObjectUtils";
 export { StringUtils as LS } from "./utils/StringUtils";
 export { EnvUtils as LE } from "./utils/EnvUtils";
+export { PromiseUtils as LP } from "./utils/PromiseUtils";
 
 export * from "./types";

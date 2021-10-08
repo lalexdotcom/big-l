@@ -1,6 +1,14 @@
-import { ObjectUtils } from "./utils/ObjectUtils";
-import { ArrayUtils } from "./utils/ArrayUtils";
+import { readFileSync } from "fs";
+import path from "path";
+import { StringUtils } from "./utils/StringUtils";
 
-const obj1 = { store: { name: "ZZZZ" } }, obj2 = { store: { name: "AAAA" } };
-const sf = ArrayUtils.sortFunction("store.name");
-console.log(sf(obj1, obj2));
+process.stdin.resume();
+(async () => {
+	console.debug("%%salut");
+	// const str = `test "{{lalex}}" et aussi '{{obj.key}}' {{obj.bar}} tant que {{arr.1}} est vrai`;
+	const str = readFileSync(path.resolve(__dirname, "json.json5"), "utf8");
+	const vars = { lalex: "123", obj: { key: "foo", bar: 123 }, arr: ["456", 789] };
+	// console.log(str, "=>", StringUtils.template(str, vars));
+	console.log(str, "=>", StringUtils.template(str, vars, true));
+	process.exit(0);
+})();

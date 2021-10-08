@@ -1,4 +1,5 @@
 import { format, formatISO, isMatch, parse, parseJSON, isValid } from "date-fns";
+import { StringUtils } from "./StringUtils";
 
 const UID_KEY = "__$biglUID$__";
 let UID_INDEX = 0;
@@ -11,6 +12,7 @@ export type JSONOptions = {
 	dateFormat?: string;
 	dateKeys?: string[];
 	parseDates?: true;
+	variables?: any;
 };
 
 function jsonReplacer(options: JSONOptions) {
@@ -212,8 +214,14 @@ export namespace ObjectUtils {
 	export function parse(text: string | null, options?: JSONOptions | null): any | null {
 		if (!text) return null;
 		let obj: any;
-		if (options?.reviver) obj = JSON.parse(text, options.reviver);
-		else obj = JSON.parse(text, options ? jsonReviver(options) : undefined);
+		if (options?.variables) {
+			text = StringUtils.template(text, options.variables, true);
+		}
+		if (options?.reviver) {
+			obj = JSON.parse(text, options.reviver);
+		} else {
+			obj = JSON.parse(text, options ? jsonReviver(options) : undefined);
+		}
 		if (options?.keyTransform) obj = ObjectUtils.mapKeys(obj, options.keyTransform, true);
 		return obj;
 	}
