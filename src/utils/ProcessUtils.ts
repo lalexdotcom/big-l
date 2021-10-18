@@ -1,4 +1,4 @@
-export namespace PromiseUtils {
+export namespace ProcessUtils {
 	type PromiseGenerator<A extends any[] = any[], T = any> = (...args: A) => Promise<T>;
 	type PromiseLaunch<A extends any[] = any[]> = { generator: PromiseGenerator<A>; args: A };
 
@@ -43,10 +43,10 @@ export namespace PromiseUtils {
 					}
 				}
 			} else if (this.isClosed) {
-				console.log("No more queue, closing...");
+				// console.log("No more queue, closing...");
 				this.poolResolve();
 			} else if (!this.running.length) {
-				console.log("Waiting for new promises or close");
+				// console.log("Waiting for new promises or close");
 			}
 		}
 

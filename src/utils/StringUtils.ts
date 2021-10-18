@@ -1,3 +1,5 @@
+import { JSONOptions, ObjectUtils } from "./ObjectUtils";
+
 export namespace StringUtils {
 	export enum Case {
 		CAMEL = "CASE/Camel",
@@ -94,11 +96,10 @@ export namespace StringUtils {
 	//
 	// {{var||default}} get replaced with default value if not found
 	// {{var||%%default}} same as above, force numeric value if json
-	export function template(input: string, variables: any, json?: boolean) {
+	export function template(input: string, variables: any, json?: boolean, options?: JSONOptions) {
 		const rgxp = /(['"']?){{([^\s]+?)(?:(?:\|\|(.*))?)}}(\1)/g;
 		const cached: { [key: string]: any } = {};
 		const replaced = input.replace(rgxp, (found, ...args: string[]) => {
-			console.debug("Replace", ...args);
 			const [quote, key, def] = args;
 			let value = cached[key];
 			if (value === undefined) {
@@ -120,7 +121,7 @@ export namespace StringUtils {
 			if (value === undefined) return found;
 
 			if (json) {
-				return JSON.stringify(value);
+				return ObjectUtils.stringify(value, options);
 			} else {
 				return quote + `${value}` + quote;
 			}
