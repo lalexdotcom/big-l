@@ -22,7 +22,7 @@ const DEFAULT_NAMESPACE = "__default";
 const PAD = inNode;
 
 export namespace Logger {
-	enum LogLevel {
+	export enum LogLevel {
 		EMERGENCY = 0,
 		ALERT = 1,
 		CRITICAL = 2,
