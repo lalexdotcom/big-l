@@ -79,7 +79,7 @@ export namespace Logger {
 		[LogLevel.ERROR]: {
 			label: "ERROR",
 			backgroundColor: "red",
-			method: [console.error, console.trace],
+			method: [console.error],
 		},
 		[LogLevel.WARNING]: {
 			label: "WARNING",
