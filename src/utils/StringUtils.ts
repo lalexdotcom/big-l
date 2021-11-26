@@ -97,31 +97,58 @@ export namespace StringUtils {
 	// {{var||default}} get replaced with default value if not found
 	// {{var||%%default}} same as above, force numeric value if json
 	export function template(input: string, variables: any, json?: boolean, options?: JSONOptions) {
-		const rgxp = /(['"']?){{([^\s]+?)(?:(?:\|\|(.*))?)}}(\1)/g;
+		const regexpBase = `(['"']?){{([^\\s(?:}})]+?)(?:(?:(\\|\\||\\?\\?)(.*))?)}}(\\1)`;
+		const rgxp = new RegExp(regexpBase, "g");
 		const cached: { [key: string]: any } = {};
-		const replaced = input.replace(rgxp, (found, ...args: string[]) => {
-			const [quote, key, def] = args;
-			let value = cached[key];
+		const varvalue = (field: string) => {
+			let value = cached[field];
+			if (value !== undefined) return value;
 			if (value === undefined) {
 				let currentValue = variables;
-				const path = key.split(".");
+				const path = field.split(".");
 				while (path.length && typeof currentValue == "object") {
 					currentValue = currentValue[path.shift()!];
 				}
-				value = cached[key] = currentValue;
+				value = cached[field] = currentValue;
 			}
-			if (value === undefined) {
-				if (def !== undefined && json && def.startsWith("%%")) {
-					value = parseFloat(def.substr(2));
-				} else {
-					value = def;
+			if (value === undefined) console.warn(field, "not found");
+			return value;
+		};
+		const replaced = input.replace(rgxp, (found, ...args: string[]) => {
+			const [quote, key, op, def] = args;
+
+			let value = varvalue(key);
+
+			if (def !== undefined) {
+				console.log("Default value", key, `${op}=>`, def);
+				switch (true) {
+					case op === "??" && value !== undefined && value !== false:
+					case op === "||" && value === undefined:
+						if (json && def.startsWith("%%")) {
+							value = parseFloat(def.substr(2));
+						} else {
+							if (json && (<string>def).match(new RegExp(`^${regexpBase}$`))) {
+								const templated = template(def, variables, json, options);
+								try {
+									value = JSON.parse(templated);
+								} catch (e) {
+									value = templated;
+								}
+							} else {
+								value = template(def, variables, json, options);
+							}
+						}
+						break;
+					case op === "??" && (value === undefined || value === false):
+						value = json ? null : "";
+						break;
 				}
 			}
 
 			if (value === undefined) return found;
 
 			if (json) {
-				return ObjectUtils.stringify(value, options);
+				return !!quote || typeof value === "object" ? ObjectUtils.stringify(value, options) : value;
 			} else {
 				return quote + `${value}` + quote;
 			}

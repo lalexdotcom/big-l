@@ -3,19 +3,31 @@ import { format } from "date-fns";
 import { EnvUtils } from "../utils/EnvUtils";
 import type StackTrace from "stacktrace-js";
 import type { Chalk } from "chalk";
+import type { inspect } from "util";
 
 const inBrowser = EnvUtils.isBrowser();
 const inNode = EnvUtils.isNode();
 
 let stack: typeof StackTrace | undefined;
 try {
-	stack = require("stacktrace-js".trim()); // eslint-disable-line
-} catch (e) {} // eslint-disable-line no-empty
+	stack = require(`${"stacktrace-js"}`); // eslint-disable-line
+} catch (e) {
+	console.warn("Stacktrace dependency not available");
+} // eslint-disable-line no-empty
 
 let chalk: Chalk | undefined;
 try {
-	chalk = inNode ? require("chalk".trim()) : undefined;
-} catch (e) {} // eslint-disable-line no-empty
+	chalk = inNode ? require(`${"chalk"}`) : undefined;
+} catch (e) {
+	if (inNode) console.warn("No chalk available");
+} // eslint-disable-line no-empty
+
+let utilInspect: typeof inspect | undefined;
+try {
+	utilInspect = inNode ? require(`${"util"}`).inspect : undefined; // eslint-disable-line
+} catch (e) {
+	if (inNode) console.warn("No util.inspect found");
+}
 
 const DEFAULT_NAMESPACE = "__default";
 
@@ -380,8 +392,9 @@ export namespace Logger {
 						prefix.push(`[${levelPrefix}]`);
 					}
 					try {
-						const util = require("util".trim());
-						args = args.map(arg => (typeof arg === "object" ? util.inspect(arg, false, null, true) : arg));
+						args = args.map(arg =>
+							typeof arg === "object" && utilInspect ? utilInspect(arg, false, null, true) : arg
+						);
 					} catch (e) {}
 				}
 
