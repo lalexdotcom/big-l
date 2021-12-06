@@ -4,16 +4,19 @@ import { EnvUtils } from "../utils/EnvUtils";
 import type StackTrace from "stacktrace-js";
 import type { Chalk } from "chalk";
 import type { inspect } from "util";
+import { LogLevel, LogOptions } from "./types";
+import { LEVEL_STYLES } from "./styles";
+import { DEFAULT_LOGGER_OPTIONS, LEVEL_PARAMS } from "./const";
 
-const inBrowser = EnvUtils.isBrowser();
-const inNode = EnvUtils.isNode();
-
-let stack: typeof StackTrace | undefined;
+let stacktrace: typeof StackTrace | undefined;
 try {
-	stack = require(`${"stacktrace-js"}`); // eslint-disable-line
+	stacktrace = require(`${"stacktrace-js"}`); // eslint-disable-line
 } catch (e) {
 	console.warn("Stacktrace dependency not available");
 } // eslint-disable-line no-empty
+
+const inBrowser = EnvUtils.isBrowser();
+const inNode = EnvUtils.isNode();
 
 let chalk: Chalk | undefined;
 try {
@@ -29,148 +32,9 @@ try {
 	if (inNode) console.warn("No util.inspect found");
 }
 
-const DEFAULT_NAMESPACE = "__default";
-
-const PAD = inNode;
+const DEFAULT_NAMESPACE = "__default__lg__namespace__";
 
 export namespace Logger {
-	export enum LogLevel {
-		EMERGENCY = 0,
-		ALERT = 1,
-		CRITICAL = 2,
-		ERROR = 3,
-		WARNING = 4,
-		NOTICE = 5,
-		INFO = 6,
-		VERBOSE = 7,
-		DEBUG = 8,
-		WHO_CARES = 9,
-	}
-
-	type LogOptions = {
-		enabled: boolean;
-		stack: boolean;
-		date: boolean;
-		time: boolean;
-		level: LogLevel;
-		pad: boolean;
-	};
-
-	const defaultOptions: LogOptions = {
-		enabled: true,
-		stack: false,
-		date: false,
-		time: false,
-		level: LogLevel.WHO_CARES,
-		pad: true,
-	};
-
-	type LogLevelStyle = {
-		backgroundColor?: string;
-		color?: string;
-	};
-
-	const LEVEL_INFOS: {
-		[key in LogLevel]: LogLevelStyle & { label: string; paddedLabel?: string; method: typeof console.info[] };
-	} = {
-		[LogLevel.EMERGENCY]: {
-			label: "EMERGENCY",
-			backgroundColor: "red",
-			method: [console.error, console.trace],
-		},
-		[LogLevel.ALERT]: {
-			label: "ALERT",
-			backgroundColor: "red",
-			method: [console.error, console.trace],
-		},
-		[LogLevel.CRITICAL]: {
-			label: "CRITICAL",
-			backgroundColor: "red",
-			method: [console.error, console.trace],
-		},
-		[LogLevel.ERROR]: {
-			label: "ERROR",
-			backgroundColor: "red",
-			method: [console.error],
-		},
-		[LogLevel.WARNING]: {
-			label: "WARNING",
-			backgroundColor: "orange",
-			method: [console.warn],
-		},
-		[LogLevel.NOTICE]: {
-			label: "NOTICE",
-			backgroundColor: "blue",
-			method: [console.info],
-		},
-		[LogLevel.INFO]: {
-			label: "INFO",
-			method: [console.info],
-		},
-		[LogLevel.VERBOSE]: {
-			label: "VERBOSE",
-			backgroundColor: "green",
-			method: [console.debug],
-		},
-		[LogLevel.DEBUG]: {
-			label: "DEBUG",
-			backgroundColor: "yellow",
-			color: "black",
-			method: [console.debug],
-		},
-		[LogLevel.WHO_CARES]: {
-			label: "WHO CARES?",
-			backgroundColor: "lightgray",
-			color: "black",
-			method: [console.debug],
-		},
-	};
-
-	if (PAD) {
-		const padSize = Math.max(...Object.values(LEVEL_INFOS).map(info => info.label.length));
-		for (const lvl of Object.values(LEVEL_INFOS)) {
-			lvl.paddedLabel = lvl.label
-				.padEnd(lvl.label.length + (padSize - lvl.label.length) / 2, " ")
-				.padStart(padSize, " ");
-		}
-	}
-
-	const defaultLevelStyle = {
-		backgroundColor: "grey",
-		color: "white",
-	};
-
-	const fullLevelStyles = ObjectUtils.map(
-		LEVEL_INFOS,
-		(o: LogLevelStyle): LogLevelStyle => ({ ...defaultLevelStyle, ...o })
-	);
-
-	const browserStyle = {
-		padding: "2px 4px",
-		"border-radius": "2px",
-	};
-
-	/* eslint-disable no-inner-declarations */
-	function styleToCSS(level: LogLevel): string {
-		const fullStyle = fullLevelStyles[level];
-
-		const cssKeys: { [key in keyof Required<LogLevelStyle>]: string } = {
-			backgroundColor: "background-color",
-			color: "color",
-		};
-		const css: any = { ...browserStyle };
-		for (const k of Object.keys(cssKeys)) {
-			const sk = <keyof typeof fullStyle>k;
-			css[cssKeys[sk]] = fullStyle[sk];
-		}
-		return ObjectUtils.reduce<string[]>(css, (red, k, v) => [...red, `${k}: ${v}`], []).join("; ");
-	}
-	/* eslint-enable */
-
-	const browserLevelStyles: { [key in LogLevel]: string } | undefined = inBrowser
-		? ObjectUtils.map(LEVEL_INFOS, (_, lvl) => styleToCSS((lvl as unknown) as LogLevel))
-		: undefined;
-
 	interface ILogger {
 		/* eslint-disable @typescript-eslint/no-explicit-any */
 		emerg(...args: any[]): void;
@@ -190,7 +54,7 @@ export namespace Logger {
 		readonly namespace: string;
 		exclusive: boolean;
 
-		once(key: string, ...args: any[]): void; // eslint-disable-line @typescript-eslint/no-explicit-any
+		once(...args: unknown[]): void; // eslint-disable-line @typescript-eslint/no-explicit-any
 		limit(key: string, limit: number): LimitedLogger;
 	}
 
@@ -203,17 +67,11 @@ export namespace Logger {
 
 	export type Options = LogOptions;
 
-	const systemGlobal = inBrowser ? window : inNode ? global : ({} as any);
+	const systemGlobal: any = inBrowser ? window : inNode ? global : {}; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-	const omni: { registry: { [ns: string]: LoggerInstance }; exclusive?: Logger } =
-		systemGlobal.__big_l ||
-		(systemGlobal.__big_l = {
-			registry: {},
-		});
-
-	const defaultInstanceOptions = { ...defaultOptions };
-
-	export const options = defaultInstanceOptions;
+	const omni: { registry: { [ns: string]: LoggerInstance }; exclusive?: Logger } = (systemGlobal.__big_l ||= {
+		registry: {},
+	});
 
 	class LoggerLimit implements LimitedLogger {
 		private instance: LoggerInstance;
@@ -225,7 +83,7 @@ export namespace Logger {
 			this.limit = limit;
 		}
 
-		private limitedCall(cb: (...args: any[]) => void, ...args: any[]) {
+		private limitedCall(cb: (...args: unknown[]) => void, ...args: unknown[]) {
 			if (this.count < this.limit) {
 				this.count++;
 				cb(...args);
@@ -239,74 +97,36 @@ export namespace Logger {
 			this.count = 0;
 		}
 
-		emerg = (...args: any[]) => this.limitedCall(this.instance.emerg, ...args); // eslint-disable-line @typescript-eslint/no-explicit-any
-		alert = (...args: any[]) => this.limitedCall(this.instance.alert, ...args); // eslint-disable-line @typescript-eslint/no-explicit-any
-		crit = (...args: any[]) => this.limitedCall(this.instance.crit, ...args); // eslint-disable-line @typescript-eslint/no-explicit-any
-		error = (...args: any[]) => this.limitedCall(this.instance.error, ...args); // eslint-disable-line @typescript-eslint/no-explicit-any
-		warn = (...args: any[]) => this.limitedCall(this.instance.warn, ...args); // eslint-disable-line @typescript-eslint/no-explicit-any
-		notice = (...args: any[]) => this.limitedCall(this.instance.notice, ...args); // eslint-disable-line @typescript-eslint/no-explicit-any
-		info = (...args: any[]) => this.limitedCall(this.instance.info, ...args); // eslint-disable-line @typescript-eslint/no-explicit-any
-		verb = (...args: any[]) => this.limitedCall(this.instance.verb, ...args); // eslint-disable-line @typescript-eslint/no-explicit-any
-		debug = (...args: any[]) => this.limitedCall(this.instance.debug, ...args); // eslint-disable-line @typescript-eslint/no-explicit-any
-		wth = (...args: any[]) => this.limitedCall(this.instance.wth, ...args); // eslint-disable-line @typescript-eslint/no-explicit-any
+		emerg = (...args: unknown[]) => this.limitedCall(this.instance.emerg, ...args);
+		alert = (...args: unknown[]) => this.limitedCall(this.instance.alert, ...args);
+		crit = (...args: unknown[]) => this.limitedCall(this.instance.crit, ...args);
+		error = (...args: unknown[]) => this.limitedCall(this.instance.error, ...args);
+		warn = (...args: unknown[]) => this.limitedCall(this.instance.warn, ...args);
+		notice = (...args: unknown[]) => this.limitedCall(this.instance.notice, ...args);
+		info = (...args: unknown[]) => this.limitedCall(this.instance.info, ...args);
+		verb = (...args: unknown[]) => this.limitedCall(this.instance.verb, ...args);
+		debug = (...args: unknown[]) => this.limitedCall(this.instance.debug, ...args);
+		wth = (...args: unknown[]) => this.limitedCall(this.instance.wth, ...args);
 	}
 
 	class LoggerInstance implements Logger {
 		private _namespace: string;
-		private _options: Logger.Options;
+		protected _options: Logger.Options;
+		private _computedOptions: Required<Logger.Options>;
 
 		private _onces: { [key: string]: boolean } = {};
 		private _limits: { [key: string]: LoggerLimit } = {};
 
 		private lastLogTime = 0;
 
-		constructor(name_space: string, options: Logger.Options) {
+		constructor(name_space: string, options: Partial<Logger.Options> = {}) {
 			this._namespace = name_space;
 			this._options = options;
+			this._computedOptions = this.computeOptions();
 		}
 
-		get namespace(): string {
+		get namespace() {
 			return this._namespace;
-		}
-
-		get enabled(): boolean {
-			return this._options.enabled;
-		}
-
-		set enabled(b: boolean) {
-			this._options.enabled = b;
-		}
-
-		get stack(): boolean {
-			return this._options.stack;
-		}
-
-		set stack(b: boolean) {
-			this._options.stack = b;
-		}
-
-		get time(): boolean {
-			return this._options.time;
-		}
-
-		set time(b: boolean) {
-			this._options.time = b;
-		}
-
-		get date(): boolean {
-			return this._options.date;
-		}
-
-		set date(b: boolean) {
-			this._options.date = b;
-		}
-
-		get level(): Logger.Level {
-			return this._options.level;
-		}
-
-		set level(level: Logger.Level) {
-			this._options.level = level;
 		}
 
 		set exclusive(b: boolean) {
@@ -317,13 +137,86 @@ export namespace Logger {
 			return omni.exclusive === this;
 		}
 
-		set pad(b: boolean) {
-			this._options.pad = b;
+		/* -- OPTIONS -- */
+		set enabled(b: boolean | undefined) {
+			this.setOption("enabled", b);
+		}
+
+		get enabled() {
+			return this._options.enabled;
+		}
+
+		set stack(b: boolean | undefined) {
+			this.setOption("stack", b);
+		}
+
+		get stack() {
+			return this._options.stack;
+		}
+
+		set time(b: boolean | undefined) {
+			this.setOption("time", b);
+		}
+
+		get time() {
+			return this._options.time;
+		}
+
+		set date(b: boolean | undefined) {
+			this.setOption("date", b);
+		}
+
+		get date() {
+			return this._options.date;
+		}
+
+		set level(level: Logger.Level | undefined) {
+			this.setOption("level", level);
+		}
+
+		get level() {
+			return this._options.level;
+		}
+
+		set pad(b: boolean | undefined) {
+			this.setOption("pad", b);
 		}
 
 		get pad() {
 			return this._options.pad;
 		}
+
+		protected setOption<K extends keyof Options>(name: K, value?: Options[K]) {
+			if (this._options[name] !== value) {
+				this._options[name] = value;
+				this.computeOptions();
+			}
+		}
+
+		protected computeOptions() {
+			const options = { ...rootInstance._computedOptions };
+			for (const opt of <(keyof Options)[]>Object.keys(options)) {
+				switch (opt) {
+					case "enabled":
+					case "stack":
+						options[opt] ||= !!this._options[opt];
+						break;
+					case "level":
+						options.level = Math.min(
+							options.level || LogLevel.WHO_CARES,
+							rootInstance.level || LogLevel.WHO_CARES
+						);
+						break;
+					case "date":
+					case "time":
+					case "pad":
+						if (this._options[opt] !== undefined) options[opt] = this._options[opt]!;
+						break;
+				}
+			}
+			return options;
+		}
+		/* ------------- */
 
 		ns = ns;
 
@@ -344,26 +237,33 @@ export namespace Logger {
 		}
 
 		private get __default() {
-			return defaultInstance;
+			return rootInstance;
 		}
 
-		private log(logLevel: Logger.Level, args: any[]): void {
+		private log(logLevel: Logger.Level, ...args: unknown[]): void {
 			// eslint-disable-line @typescript-eslint/no-explicit-any
-			const maxLevel = Math.min(defaultInstanceOptions.level, this._options.level);
 			if (omni.exclusive && omni.exclusive !== this) return;
-			if (defaultInstanceOptions.enabled && this._options.enabled && logLevel <= maxLevel) {
-				const methods = LEVEL_INFOS[logLevel].method;
+			const {
+				enabled: enabledOption,
+				stack: stackOption,
+				date: dateOption,
+				time: timeOption,
+				level: levelOption,
+				pad: padOption,
+			} = this._computedOptions;
+			if (enabledOption && logLevel <= levelOption) {
+				const methods = LEVEL_PARAMS[logLevel].methods;
 				const prefix: string[] = [];
 
 				const levelLabel =
-					this._options.pad && LEVEL_INFOS[logLevel].paddedLabel
-						? LEVEL_INFOS[logLevel].paddedLabel
-						: LEVEL_INFOS[logLevel].label;
+					padOption && LEVEL_PARAMS[logLevel].paddedLabel
+						? LEVEL_PARAMS[logLevel].paddedLabel
+						: LEVEL_PARAMS[logLevel].label;
 				const debugPrefix = `${levelLabel}${
 					this._namespace != DEFAULT_NAMESPACE ? ` "${this._namespace}"` : ""
 				}`;
 
-				if (this._options.time) {
+				if (timeOption) {
 					const currentTime = new Date().getTime();
 
 					if (this.lastLogTime) {
@@ -378,7 +278,7 @@ export namespace Logger {
 				}
 
 				if (inNode) {
-					const style = fullLevelStyles[logLevel];
+					const style = LEVEL_STYLES[logLevel].style;
 					let levelPrefix = debugPrefix;
 					if (chalk) {
 						let colorize = chalk;
@@ -395,59 +295,59 @@ export namespace Logger {
 						args = args.map(arg =>
 							typeof arg === "object" && utilInspect ? utilInspect(arg, false, null, true) : arg
 						);
-					} catch (e) {}
+					} catch (e) {} // eslint-disable-line
 				}
 
-				if (this._options.date) {
+				if (dateOption) {
 					const datePrefix = `[${format(new Date(), "yyyy-MM-dd kk:mm:ss.SSS")}]`;
 					prefix.unshift(datePrefix);
 				}
 
-				if (this._options.stack && stack) {
-					const st = stack.getSync();
+				if (stackOption && stacktrace) {
+					const st = stacktrace.getSync();
 					const fName = st[2]?.functionName;
 					if (fName) prefix.push(`< ${fName} >`);
 				}
 
 				if (inBrowser) {
-					prefix.unshift(
-						`%c${debugPrefix}`,
-						browserLevelStyles![logLevel] // eslint-disable-line @typescript-eslint/no-non-null-assertion
-					);
+					prefix.unshift(`%c${debugPrefix}`, LEVEL_STYLES[logLevel].css || "");
 				}
 
 				for (const method of methods) method(...prefix, ...args);
-				// method.apply(console, [...prefix, ...args]);
 			}
 		}
 
-		once(id: string, ...args: any[]) {
+		once(id: string, ...args: unknown[]) {
 			if (!this._onces[id]) {
 				this._onces[id] = true;
 				this.log(LogLevel.WHO_CARES, args);
 			}
 		}
 
-		/* eslint-disable @typescript-eslint/no-explicit-any */
-		emerg = (...args: any[]) => this.log(LogLevel.EMERGENCY, args);
-		alert = (...args: any[]) => this.log(LogLevel.ALERT, args);
-		crit = (...args: any[]) => this.log(LogLevel.CRITICAL, args);
-		error = (...args: any[]) => this.log(LogLevel.ERROR, args);
-		warn = (...args: any[]) => this.log(LogLevel.WARNING, args);
-		notice = (...args: any[]) => this.log(LogLevel.NOTICE, args);
-		info = (...args: any[]) => this.log(LogLevel.INFO, args);
-		verb = (...args: any[]) => this.log(LogLevel.VERBOSE, args);
-		debug = (...args: any[]) => this.log(LogLevel.DEBUG, args);
-		wth = (...args: any[]) => this.log(LogLevel.WHO_CARES, args);
-		/* eslint-enable */
+		emerg = (...args: unknown[]) => this.log(LogLevel.EMERGENCY, ...args);
+		alert = (...args: unknown[]) => this.log(LogLevel.ALERT, ...args);
+		crit = (...args: unknown[]) => this.log(LogLevel.CRITICAL, ...args);
+		error = (...args: unknown[]) => this.log(LogLevel.ERROR, ...args);
+		warn = (...args: unknown[]) => this.log(LogLevel.WARNING, ...args);
+		notice = (...args: unknown[]) => this.log(LogLevel.NOTICE, ...args);
+		info = (...args: unknown[]) => this.log(LogLevel.INFO, ...args);
+		verb = (...args: unknown[]) => this.log(LogLevel.VERBOSE, ...args);
+		debug = (...args: unknown[]) => this.log(LogLevel.DEBUG, ...args);
+		wth = (...args: unknown[]) => this.log(LogLevel.WHO_CARES, ...args);
+	}
+
+	class RootLoggerInstance extends LoggerInstance {
+		constructor() {
+			super(DEFAULT_NAMESPACE, DEFAULT_LOGGER_OPTIONS);
+		}
+
+		protected computeOptions() {
+			return { ...this._options } as Required<Options>;
+		}
 	}
 
 	export const ns = (ns: string, options: Partial<Logger.Options> = {}): Logger => {
-		if (!omni.registry[ns])
-			omni.registry[ns] = new LoggerInstance(
-				ns,
-				ns == DEFAULT_NAMESPACE ? defaultInstanceOptions : { ...defaultInstanceOptions, ...options }
-			);
+		if (!omni.registry[ns]) omni.registry[ns] = new LoggerInstance(ns, options);
 		return omni.registry[ns];
 	};
 
@@ -456,25 +356,23 @@ export namespace Logger {
 		omni.exclusive = name_space ? ns(name_space) : undefined;
 	};
 
-	const defaultInstance = ns(DEFAULT_NAMESPACE);
+	const rootInstance = new RootLoggerInstance();
 
-	/* eslint-disable @typescript-eslint/no-explicit-any */
-	export const emerg = (...args: any[]): void => defaultInstance.emerg(LogLevel.EMERGENCY, ...args);
-	export const alert = (...args: any[]): void => defaultInstance.alert(...args);
-	export const crit = (...args: any[]): void => defaultInstance.crit(...args);
-	export const error = (...args: any[]): void => defaultInstance.error(...args);
-	export const warn = (...args: any[]): void => defaultInstance.warn(...args);
-	export const notice = (...args: any[]): void => defaultInstance.notice(...args);
-	export const info = (...args: any[]): void => defaultInstance.info(...args);
-	export const verb = (...args: any[]): void => defaultInstance.verb(...args);
-	export const debug = (...args: any[]): void => defaultInstance.debug(...args);
-	export const wth = (...args: any[]): void => defaultInstance.wth(...args);
+	export const emerg = (...args: unknown[]): void => rootInstance.emerg(...args);
+	export const alert = (...args: unknown[]): void => rootInstance.alert(...args);
+	export const crit = (...args: unknown[]): void => rootInstance.crit(...args);
+	export const error = (...args: unknown[]): void => rootInstance.error(...args);
+	export const warn = (...args: unknown[]): void => rootInstance.warn(...args);
+	export const notice = (...args: unknown[]): void => rootInstance.notice(...args);
+	export const info = (...args: unknown[]): void => rootInstance.info(...args);
+	export const verb = (...args: unknown[]): void => rootInstance.verb(...args);
+	export const debug = (...args: unknown[]): void => rootInstance.debug(...args);
+	export const wth = (...args: unknown[]): void => rootInstance.wth(...args);
 
-	export const once = (id: string, ...args: any[]): void => defaultInstance.once(id, ...args);
-	export const limit = (key: string, count: number): LimitedLogger => defaultInstance.limit(key, count);
-	/* eslint-disable @typescript-eslint/no-explicit-any */
+	export const once = (id: string, ...args: unknown[]): void => rootInstance.once(id, ...args);
+	export const limit = (key: string, count: number): LimitedLogger => rootInstance.limit(key, count);
 
-	export const patch = () => {
+	export const patch = (): void => {
 		console.error = error;
 		console.warn = warn;
 		console.log = console.info = info;

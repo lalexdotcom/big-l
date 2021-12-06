@@ -273,4 +273,27 @@ export namespace ObjectUtils {
 			})
 		);
 	}
+
+	export function copy<T extends any>(o: T): T {
+		if (null == o || "object" !== typeof o) return o;
+		let copied: any;
+		if (o instanceof Date) {
+			const dt = new Date();
+			dt.setTime(o.getTime());
+			copied = dt;
+			return copied;
+		}
+		if (Array.isArray(o)) {
+			copied = o.map(copy);
+			return copied;
+		}
+		if (o instanceof Object) {
+			copied = {};
+			for (const [key, value] of Object.entries(o)) {
+				if (o.hasOwnProperty(key)) copied[key] = copy(value);
+			}
+			return copied;
+		}
+		throw new Error("Object can't be copied");
+	}
 }
