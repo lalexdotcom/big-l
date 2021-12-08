@@ -1,5 +1,4 @@
 import { EnvUtils } from "../utils/EnvUtils";
-import { ObjectUtils } from "../utils/ObjectUtils";
 import { LogLevel, LogOptions } from "./types";
 
 const inNode = EnvUtils.isNode();

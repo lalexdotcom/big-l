@@ -11,8 +11,8 @@
 		"lib"
 	],
 	"scripts": {
-		"build": "rm -rf $(find lib -name \"*\" ! -name \"index.*\") && tsc --project .",
-		"watch": "rm -rf $(find lib -name \"*\" ! -name \"index.*\") && tsc --watch --project .",
+		"build": "rm -rf $(find lib -name \"*\" ! -name \"index.*\" | grep lib/) && tsc --project .",
+		"watch": "rm -rf $(find lib -name \"*\" ! -name \"index.*\" | grep lib/) && tsc --watch --project .",
 		"test": "ts-node src/test.ts",
 		"format": "prettier --write src/**/*.ts",
 		"lint": "eslint",
@@ -42,12 +42,12 @@
 		"ts-node": "^9.0.0",
 		"typescript": "^4.1.2"
 	},
-	"peerDependencies": {
-		"chalk": "^4.1.0",
-		"stacktrace-js": "^2.0.2"
-	},
+	"peerDependencies": {},
 	"dependencies": {
 		"date-fns": "^2.16.1"
 	},
-	"optionalDependencies": {}
+	"optionalDependencies": {
+		"chalk": "4",
+		"stacktrace-js": "^2.0.2"
+	}
 }

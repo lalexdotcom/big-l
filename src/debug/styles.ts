@@ -9,6 +9,18 @@ type LogLevelStyle = {
 	color?: string;
 };
 
+// Constants
+
+const DEFAULT_LEVEL_STYLE = {
+	backgroundColor: "grey",
+	color: "white",
+};
+
+const DEFAULT_BROWSER_STYLE = {
+	padding: "2px 4px",
+	"border-radius": "2px",
+};
+
 const levelStyles: {
 	[key in LogLevel]: LogLevelStyle;
 } = {
@@ -44,27 +56,15 @@ const levelStyles: {
 	},
 };
 
-export const LEVEL_STYLES = ObjectUtils.map(levelStyles, (sty: LogLevelStyle) => {
-	const fullStyle = { ...DEFAULT_LEVEL_STYLE, ...sty };
+export const LEVEL_STYLES = ObjectUtils.map(levelStyles, (styl: LogLevelStyle) => {
+	const fullStyle = { ...DEFAULT_LEVEL_STYLE, ...styl };
 	return {
 		style: fullStyle,
 		css: inBrowser ? css(fullStyle) : undefined,
 	};
 });
 
-// Constants
-
-const DEFAULT_LEVEL_STYLE = {
-	backgroundColor: "grey",
-	color: "white",
-};
-
-const DEFAULT_BROWSER_STYLE = {
-	padding: "2px 4px",
-	"border-radius": "2px",
-};
-
-export const css = (style: LogLevelStyle): string => {
+function css(style: LogLevelStyle) {
 	// const style = LEVEL_STYLES[level];
 
 	const STYLE_MAP: { [key in keyof LogLevelStyle]: string } = {
@@ -80,4 +80,4 @@ export const css = (style: LogLevelStyle): string => {
 	return Object.entries(cssObject)
 		.map(([key, value]) => `${key}: ${value}`)
 		.join(";");
-};
+}

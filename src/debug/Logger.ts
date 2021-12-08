@@ -1,4 +1,3 @@
-import { ObjectUtils } from "../utils/ObjectUtils";
 import { format } from "date-fns";
 import { EnvUtils } from "../utils/EnvUtils";
 import type StackTrace from "stacktrace-js";
@@ -8,31 +7,27 @@ import { LogLevel, LogOptions } from "./types";
 import { LEVEL_STYLES } from "./styles";
 import { DEFAULT_LOGGER_OPTIONS, LEVEL_PARAMS } from "./const";
 
-let stacktrace: typeof StackTrace | undefined;
-try {
-	stacktrace = require(`${"stacktrace-js"}`); // eslint-disable-line
-} catch (e) {
-	console.warn("Stacktrace dependency not available");
-} // eslint-disable-line no-empty
-
 const inBrowser = EnvUtils.isBrowser();
 const inNode = EnvUtils.isNode();
 
-let chalk: Chalk | undefined;
+let stacktrace: typeof StackTrace | undefined;
 try {
-	chalk = inNode ? require(`${"chalk"}`) : undefined;
-} catch (e) {
-	if (inNode) console.warn("No chalk available");
-} // eslint-disable-line no-empty
+	stacktrace = require(/* webpackIgnore: true */ "stacktrace-js");
+} catch {}
 
-let utilInspect: typeof inspect | undefined;
-try {
-	utilInspect = inNode ? require(`${"util"}`).inspect : undefined; // eslint-disable-line
-} catch (e) {
-	if (inNode) console.warn("No util.inspect found");
+let chalk: Chalk | undefined;
+if (inNode) {
+	try {
+		chalk = require(/* webpackIgnore: true */ "chalk");
+	} catch (e) {}
 }
 
-const DEFAULT_NAMESPACE = "__default__lg__namespace__";
+let utilInspect: typeof inspect;
+if (inNode) {
+	try {
+		utilInspect = require(/* webpackIgnore: true */ "util")?.inspect;
+	} catch (e) {}
+}
 
 export namespace Logger {
 	interface ILogger {
@@ -51,7 +46,7 @@ export namespace Logger {
 	}
 
 	export interface Logger extends ILogger, LogOptions {
-		readonly namespace: string;
+		readonly namespace?: string;
 		exclusive: boolean;
 
 		once(...args: unknown[]): void; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -110,19 +105,20 @@ export namespace Logger {
 	}
 
 	class LoggerInstance implements Logger {
-		private _namespace: string;
+		private _namespace?: string;
 		protected _options: Logger.Options;
-		private _computedOptions: Required<Logger.Options>;
+		private _computedOptions!: Required<Logger.Options>;
 
 		private _onces: { [key: string]: boolean } = {};
 		private _limits: { [key: string]: LoggerLimit } = {};
 
 		private lastLogTime = 0;
 
-		constructor(name_space: string, options: Partial<Logger.Options> = {}) {
-			this._namespace = name_space;
+		constructor(nameSpace?: string, options: Partial<Logger.Options> = {}) {
+			this._namespace = nameSpace;
 			this._options = options;
-			this._computedOptions = this.computeOptions();
+			this._computedOptions = DEFAULT_LOGGER_OPTIONS;
+			this.computeOptions();
 		}
 
 		get namespace() {
@@ -130,7 +126,7 @@ export namespace Logger {
 		}
 
 		set exclusive(b: boolean) {
-			exclusive(b ? this._namespace : undefined);
+			exclusive(b ? this : undefined);
 		}
 
 		get exclusive() {
@@ -143,7 +139,7 @@ export namespace Logger {
 		}
 
 		get enabled() {
-			return this._options.enabled;
+			return this.getOption("enabled");
 		}
 
 		set stack(b: boolean | undefined) {
@@ -151,7 +147,7 @@ export namespace Logger {
 		}
 
 		get stack() {
-			return this._options.stack;
+			return this.getOption("stack");
 		}
 
 		set time(b: boolean | undefined) {
@@ -159,7 +155,7 @@ export namespace Logger {
 		}
 
 		get time() {
-			return this._options.time;
+			return this.getOption("time");
 		}
 
 		set date(b: boolean | undefined) {
@@ -167,7 +163,7 @@ export namespace Logger {
 		}
 
 		get date() {
-			return this._options.date;
+			return this.getOption("date");
 		}
 
 		set level(level: Logger.Level | undefined) {
@@ -175,7 +171,7 @@ export namespace Logger {
 		}
 
 		get level() {
-			return this._options.level;
+			return this.getOption("level");
 		}
 
 		set pad(b: boolean | undefined) {
@@ -183,14 +179,20 @@ export namespace Logger {
 		}
 
 		get pad() {
-			return this._options.pad;
+			return this.getOption("pad");
 		}
 
 		protected setOption<K extends keyof Options>(name: K, value?: Options[K]) {
-			if (this._options[name] !== value) {
+			if (this._computedOptions[name] !== value) {
+				console.log(`Set ${this.namespace || ""} option`, name, "to", value);
 				this._options[name] = value;
 				this.computeOptions();
+				console.log(name, "is now", this._computedOptions[name]);
 			}
+		}
+
+		protected getOption<K extends keyof Options>(name: K): Options[K] {
+			return this._computedOptions[name];
 		}
 
 		protected computeOptions() {
@@ -198,6 +200,10 @@ export namespace Logger {
 			for (const opt of <(keyof Options)[]>Object.keys(options)) {
 				switch (opt) {
 					case "enabled":
+						// options[opt] ||= !!this._options[opt];
+						console.log("Enable", this.namespace, ":", options["enabled"] , "&&", this._options["enabled"]);
+						options[opt] &&= (this._options.enabled === undefined || !!this._options[opt]);
+						break;
 					case "stack":
 						options[opt] ||= !!this._options[opt];
 						break;
@@ -214,7 +220,7 @@ export namespace Logger {
 						break;
 				}
 			}
-			return options;
+			this._computedOptions = options;
 		}
 		/* ------------- */
 
@@ -240,7 +246,7 @@ export namespace Logger {
 			return rootInstance;
 		}
 
-		private log(logLevel: Logger.Level, ...args: unknown[]): void {
+		log(logLevel: Logger.Level, ...args: unknown[]): void {
 			// eslint-disable-line @typescript-eslint/no-explicit-any
 			if (omni.exclusive && omni.exclusive !== this) return;
 			const {
@@ -259,9 +265,7 @@ export namespace Logger {
 					padOption && LEVEL_PARAMS[logLevel].paddedLabel
 						? LEVEL_PARAMS[logLevel].paddedLabel
 						: LEVEL_PARAMS[logLevel].label;
-				const debugPrefix = `${levelLabel}${
-					this._namespace != DEFAULT_NAMESPACE ? ` "${this._namespace}"` : ""
-				}`;
+				const debugPrefix = `${levelLabel}${this._namespace ? ` "${this._namespace}"` : ""}`;
 
 				if (timeOption) {
 					const currentTime = new Date().getTime();
@@ -286,7 +290,7 @@ export namespace Logger {
 						if (style.backgroundColor) colorize = colorize.bgKeyword(style.backgroundColor);
 						levelPrefix = colorize(` ${debugPrefix} `);
 					}
-					if (this._options.pad) {
+					if (padOption) {
 						prefix.unshift(levelPrefix);
 					} else {
 						prefix.push(`[${levelPrefix}]`);
@@ -338,26 +342,30 @@ export namespace Logger {
 
 	class RootLoggerInstance extends LoggerInstance {
 		constructor() {
-			super(DEFAULT_NAMESPACE, DEFAULT_LOGGER_OPTIONS);
+			super();
 		}
 
 		protected computeOptions() {
-			return { ...this._options } as Required<Options>;
+			for (const lgr of Object.values(omni.registry)) {
+				(lgr as any).computeOptions();
+			}
 		}
 	}
 
-	export const ns = (ns: string, options: Partial<Logger.Options> = {}): Logger => {
-		if (!omni.registry[ns]) omni.registry[ns] = new LoggerInstance(ns, options);
+	export const ns = (ns?: string, options: Partial<Logger.Options> = {}): Logger => {
+		if (!ns) return rootInstance;
+		omni.registry[ns] ||= new LoggerInstance(ns, options);
 		return omni.registry[ns];
 	};
 
-	export const exclusive = (name_space?: string): void => {
-		warn(`${name_space} is exclusive`);
-		omni.exclusive = name_space ? ns(name_space) : undefined;
+	export const exclusive = (lgr?: LoggerInstance): void => {
+		if (lgr) warn(`${lgr.namespace} is exclusive`);
+		omni.exclusive = lgr;
 	};
 
 	const rootInstance = new RootLoggerInstance();
 
+	export const log = (level: Level, ...args: unknown[]): void => rootInstance.log(level, ...args);
 	export const emerg = (...args: unknown[]): void => rootInstance.emerg(...args);
 	export const alert = (...args: unknown[]): void => rootInstance.alert(...args);
 	export const crit = (...args: unknown[]): void => rootInstance.crit(...args);
