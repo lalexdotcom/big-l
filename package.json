@@ -11,8 +11,8 @@
 		"lib"
 	],
 	"scripts": {
-		"build": "rm -rf lib/* && tsc --project .",
-		"watch": "rm -rf lib/* && tsc --watch --project .",
+		"build": "rm -rf $(find lib -name \"*\" ! -name \"index.*\") && tsc --project .",
+		"watch": "rm -rf $(find lib -name \"*\" ! -name \"index.*\") && tsc --watch --project .",
 		"test": "ts-node src/test.ts",
 		"format": "prettier --write src/**/*.ts",
 		"lint": "eslint",

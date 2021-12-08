@@ -1,4 +1,4 @@
-import { format, formatISO, isMatch, parse, parseJSON, isValid } from "date-fns";
+import { format, formatISO, isMatch, parse, isValid, parseISO } from "date-fns";
 import { StringUtils } from "./StringUtils";
 
 const UID_KEY = "__$biglUID$__";
@@ -32,13 +32,12 @@ function jsonReplacer(options: JSONOptions) {
 function jsonReviver(options: JSONOptions) {
 	return function (this: any, k: string, v: any) {
 		if (options.parseDates || options.dateFormat || (options.dateKeys && options.dateKeys.indexOf(k) >= 0)) {
-			const dt = options.dateFormat
-				? isMatch(`${v}`, options.dateFormat)
-					? parse(v, options.dateFormat, new Date())
-					: null
-				: typeof v == "string"
-				? parseJSON(v)
-				: null;
+			let dt: Date | undefined;
+			if (typeof v === "string") {
+				dt = options.dateFormat
+					? (isMatch(v, options.dateFormat) || undefined) && parse(v, options.dateFormat, new Date())
+					: parseISO(v);
+			}
 			if (isValid(dt)) return dt;
 		}
 		if (options.reviver) return options.reviver.call(this, k, v);
