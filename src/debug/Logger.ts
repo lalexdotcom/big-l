@@ -200,8 +200,6 @@ export namespace Logger {
 			for (const opt of <(keyof Options)[]>Object.keys(options)) {
 				switch (opt) {
 					case "enabled":
-						// options[opt] ||= !!this._options[opt];
-						console.log("Enable", this.namespace, ":", options["enabled"], "&&", this._options["enabled"]);
 						options[opt] &&= this._options.enabled === undefined || !!this._options[opt];
 						break;
 					case "stack":
