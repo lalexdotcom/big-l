@@ -184,10 +184,10 @@ export namespace Logger {
 
 		protected setOption<K extends keyof Options>(name: K, value?: Options[K]) {
 			if (this._computedOptions[name] !== value) {
-				console.log(`Set ${this.namespace || ""} option`, name, "to", value);
+				// console.log(`Set ${this.namespace || ""} option`, name, "to", value);
 				this._options[name] = value;
 				this.computeOptions();
-				console.log(name, "is now", this._computedOptions[name]);
+				// console.log(name, "is now", this._computedOptions[name]);
 			}
 		}
 

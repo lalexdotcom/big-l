@@ -32,11 +32,11 @@ function jsonReplacer(options: JSONOptions) {
 function jsonReviver(options: JSONOptions) {
 	return function (this: any, k: string, v: any) {
 		if (options.parseDates || options.dateFormat || (options.dateKeys && options.dateKeys.indexOf(k) >= 0)) {
-			let dt: Date | undefined;
+			let dt: any;
 			if (typeof v === "string") {
 				dt = options.dateFormat
 					? (isMatch(v, options.dateFormat) || undefined) && parse(v, options.dateFormat, new Date())
-					: parseISO(v);
+					: v.length > 5 && parseISO(v);
 			}
 			if (isValid(dt)) return dt;
 		}
