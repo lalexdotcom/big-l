@@ -316,7 +316,10 @@ export namespace Template {
 				return matches.length ? internalCompute(matches, params, operatorRegistry, cache) : stringOrObject;
 			}
 			case "object": {
+				// Logger.info("Replace in object", stringOrObject);
 				switch (true) {
+					case stringOrObject === null:
+						return null;
 					case Array.isArray(stringOrObject):
 						return (<unknown[]>stringOrObject).map(arrayElement =>
 							internalReplace(arrayElement, params, options, cache)
@@ -326,7 +329,7 @@ export namespace Template {
 					case stringOrObject instanceof Function:
 						return stringOrObject;
 					default: {
-						// Logger.debug("Replace in object");
+						// Logger.debug("Replace in object", stringOrObject);
 						const replacedObject: Record<string, unknown> = {};
 						for (const objectKey in stringOrObject) {
 							const keyValue = stringOrObject[objectKey];
@@ -337,6 +340,7 @@ export namespace Template {
 				}
 			}
 			default:
+				// Logger.info("Don't replace", stringOrObject);
 				return stringOrObject;
 		}
 	}
