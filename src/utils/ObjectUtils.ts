@@ -1,4 +1,4 @@
-import { format, formatISO, isMatch, parse, isValid, parseISO } from "date-fns";
+import { format, formatISO, isMatch, parse, isValid, parseISO, toDate } from "date-fns";
 import { StringUtils } from "./StringUtils";
 
 const UID_KEY = "__$biglUID$__";
@@ -29,6 +29,30 @@ function jsonReplacer(options: JSONOptions) {
 	};
 }
 
+function parseJSONDate(dateString: string) {
+	if (typeof dateString === "string") {
+		const parts = dateString.match(
+			/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d{0,7}))?(?:Z|(.)(\d{2}):?(\d{2})?)?$/
+		);
+		if (parts) {
+			// Group 8 matches the sign
+			return new Date(
+				Date.UTC(
+					+parts[1],
+					+parts[2] - 1,
+					+parts[3],
+					+parts[4] - (+parts[9] || 0) * (parts[8] == "-" ? -1 : 1),
+					+parts[5] - (+parts[10] || 0) * (parts[8] == "-" ? -1 : 1),
+					+parts[6],
+					+((parts[7] || "0") + "00").substring(0, 3)
+				)
+			);
+		}
+		return new Date(NaN);
+	}
+	return toDate(dateString);
+}
+
 function jsonReviver(options: JSONOptions) {
 	return function (this: any, k: string, v: any) {
 		if (options.parseDates || options.dateFormat || (options.dateKeys && options.dateKeys.indexOf(k) >= 0)) {
@@ -36,7 +60,7 @@ function jsonReviver(options: JSONOptions) {
 			if (typeof v === "string") {
 				dt = options.dateFormat
 					? (isMatch(v, options.dateFormat) || undefined) && parse(v, options.dateFormat, new Date())
-					: v.length > 5 && parseISO(v);
+					: parseJSONDate(v);
 			}
 			if (isValid(dt)) return dt;
 		}
