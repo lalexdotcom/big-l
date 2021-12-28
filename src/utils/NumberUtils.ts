@@ -13,10 +13,9 @@ export namespace NumberUtils {
 		return num;
 	}
 
-	export function round(price: number, digits = 0): number {
-		if (!digits) return Math.round(price);
-		const pow = Math.pow(10, digits);
-		return Math.round(price * pow) / pow;
+	export function round(value: number, precision = 1): number {
+		if (precision == 1) return Math.round(value);
+		return Math.round(value / precision) * precision;
 	}
 
 	export function reduce(price: number, precision: number) {
