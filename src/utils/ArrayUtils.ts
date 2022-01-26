@@ -78,7 +78,7 @@ export namespace ArrayUtils {
 							const path = fieldOrAccessor.split(".");
 							let prop: string | undefined;
 							while ((prop = path.shift())) {
-								v = v[prop];
+								v = v?.[prop];
 							}
 						} else {
 							v = o[fieldOrAccessor];
