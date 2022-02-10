@@ -1,4 +1,5 @@
 {
     "workbench.colorTheme": "GitHub Dark Default",
-    "git.postCommitCommand": "push"
+    "git.postCommitCommand": "push",
+    "typescript.tsdk": "node_modules/typescript/lib"
 }
